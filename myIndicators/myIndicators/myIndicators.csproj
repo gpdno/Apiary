@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E3AEF2B6-0ADE-4F88-8472-5B6C9F5F6CB7}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>myIndicators</RootNamespace>
+    <AssemblyName>myIndicators</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Alveo.Chart">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Chart.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.CodeGenerator">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.CollectionEditor">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CollectionEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.Constants">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Constants.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.DataFeed">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.DataFeed.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.Interfaces">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.Post">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Post.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.StockChartX">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.StockChartX.dll</HintPath>
+    </Reference>
+    <Reference Include="Alveo.UserCode">
+      <HintPath>..\..\GoldenStd\MarketSim\bin\Debug\Alveo.UserCode.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Indicators\HMA3.cs" />
+    <Compile Include="Indicators\PriceInd.cs" />
+    <Compile Include="Indicators\PriceInd2.cs" />
+    <Compile Include="Indicators\TemplateInd.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
