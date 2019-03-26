@@ -128,7 +128,7 @@
       <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.ViewModels.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Views">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.Views.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Views.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
