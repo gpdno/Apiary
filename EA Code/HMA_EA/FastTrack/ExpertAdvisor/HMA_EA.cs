@@ -59,7 +59,7 @@ namespace Alveo.UserCode
         public int TakeProfit { get; set; }
 
         [Category("Settings")]
-        [Description("Number of Statndard lots to trade. [ex: 0.02]")]
+        [Description("Number of Standard lots to trade. [ex: 0.02]")]
         public double Quantity { get; set; }
 
         [Category("Settings")]

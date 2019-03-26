@@ -65,67 +65,67 @@
   <ItemGroup>
     <Reference Include="Alveo.AlertManager, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.AlertManager.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.AlertManager.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Chart">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Chart.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Chart.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.CodeBuilder">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeBuilder.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeBuilder.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.CodeGenerator">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeGenerator.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeGenerator.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.CodeManager, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeManager.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CodeManager.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.CollectionEditor">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CollectionEditor.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.CollectionEditor.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Common">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Common.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Constants">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Constants.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Constants.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Core">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Core.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Core.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.DataFeed, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.DataFeed.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.DataFeed.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.GlobalManager">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.GlobalManager.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.GlobalManager.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Interfaces">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.Interfaces.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.MVVM">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.MVVM.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.MVVM.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Post">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.Post.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.Post.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.SimulatedBroker, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.SimulatedBroker.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.SimulatedBroker.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.StockChartX">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.StockChartX.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.StockChartX.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.TASDK">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.TASDK.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.TASDK.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.UserCode">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.UserCode.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.UserCode.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.ViewModelInterfaces">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.ViewModelInterfaces.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.ViewModelInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.ViewModels">
-      <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.ViewModels.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Alveo\Alveo.ViewModels.dll</HintPath>
     </Reference>
     <Reference Include="Alveo.Views">
       <HintPath>..\..\..\Program Files (x86)\Alveo\Alveo.Views.dll</HintPath>

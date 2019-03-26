@@ -9,8 +9,8 @@ namespace CuatomExpertAdvisor
 {
     class Program
     {
-        //const string pair = "EUR/USD";
-        const string pair = "GBP/USD";
+        const string pair = "EUR/USD";
+        //const string pair = "GBP/USD";
         //const string pair = "GBP/CHF";        //*
         //const string pair = "EUR/GBP";        //*
         //const string pair = "AUD/NZD";        //*
@@ -24,7 +24,7 @@ namespace CuatomExpertAdvisor
         static string version = "v1.0";
         static string strategy = "HMA_EA";
         //static Alveo.Common.Enums.TimeFrame timeframe = Alveo.Common.Enums.TimeFrame.Unknown;
-        static Alveo.Common.Enums.TimeFrame timeframe = Alveo.Common.Enums.TimeFrame.M15;
+        static Alveo.Common.Enums.TimeFrame timeframe = Alveo.Common.Enums.TimeFrame.M5;
         static HistoricalData.HistoricalData hist;
 
         static bool optimize = false;
