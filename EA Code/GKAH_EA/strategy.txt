@@ -1,0 +1,43 @@
+﻿Green Kent and Ham
+
+
+Set-up:
+Time Frame:  5M
+Indicators:  CCI(7)
+User Settings:  Risk, MaxSpreed
+
+
+Variables:
+AccountValue
+
+
+Constants:
+FixedProfit = 2 pips
+FixedLoss = 10 pips
+
+
+Calculations:
+PositionSize = AccountValue/FixedLoss /1000
+
+
+Trade Entry:
+If no open trades and (Ask - Bid) < MaxSpreed
+
+
+If CCI < -100 (Long position)
+TakeProfit = Current Candle.Open + FixedProfit
+SlopLoss = Current Candle.Open - FixedLoss 
+Open Limit Order(Side: Buy, Qty: PositionSize , SL: StopLoss, TP:   TakeProfit)
+
+
+If CCI > 100 (Short position)
+TakeProfit = Current Candle.Open - FixedProfit
+SlopLoss = Current Candle.Open + FixedLoss 
+Open Limit Order(Side: Sell, Qty: PositionSize , SL: StopLoss, TP:   TakeProfit)
+Trade Exit:
+TakeProfit || StopLoss
+
+
+Pending Cancel:
+        If Open.Order.Pending & Current Candle = Current Candle +1
+Cancel Pending Order
