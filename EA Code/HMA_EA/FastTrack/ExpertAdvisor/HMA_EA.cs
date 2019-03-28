@@ -42,6 +42,7 @@ namespace Alveo.UserCode
 
         #region User Settings          // ** Add Alveo EA User Settings Declared here
 
+
         [Category("HMA")]
         [Description("HEMA Period in Bars [ex: 7]")]
         public int HMA_period { get; set; }
