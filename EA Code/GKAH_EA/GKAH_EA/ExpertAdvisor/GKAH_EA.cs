@@ -3093,73 +3093,86 @@ namespace Alveo.UserCode
         ///
         internal class CCIobj
         {
-            internal TPobj wma1;
-            internal TPobj wma2;
-            internal TPobj wma3;
+            internal TPobj tpobj;
             internal int Period;
+            //double Threshold;
+            //int sqrtPeriod;
             internal bool isAbove;
             internal bool isBelow;
-            internal bool isRising;
-            internal bool isFalling;
+            internal int trendDir;
+            internal int prevTrendDir;
+            internal bool trendChanged;
             internal double value;
             internal double prevValue;
             internal bool firstrun;
-            internal double term3;
+            internal double sma_7;//7 SMA 
+            internal double md_7;// 7 MD
             GKAH_EA ea;
 
             // CCIobj constructor
             CCIobj()
             {
                 Period = 7;
+                //Threshold = 0;
+                //sqrtPeriod = (int)Math.Round(Math.Sqrt(Period));
                 isAbove = false;
                 isBelow = false;
-                isRising = false;
-                isFalling = false;
+                trendDir = 0;
+                sma_7 = 0; //7 SMA 
+                md_7 = 0; // 7 MD
+                prevTrendDir = 0;
+                trendChanged = false;
                 value = double.MinValue;
                 prevValue = value;
             }
 
             // TPobj constructor with input parameters
-            internal CCIobj(GKAH_EA ea, int period, int threshold) : this()   // do CCI() first
+            internal CCIobj(GKAH_EA ea, int period, int threshold) : this()   // do HEMA() first
             {
                 this.ea = ea;
                 Period = period;
-                wma1 = new TPobj(period, 0);
-                wma2 = new TPobj((int)Math.Round(((double)period + 1) / 2), 0);
+                //Threshold = (double)threshold * 1e-6;
+                //sqrtPeriod = (int)Math.Round(Math.Sqrt((double)Period));
+                tpobj = new TPobj(period, 0);
+                //wma2 = new TPobj((int)Math.Round(((double)period + 1) / 2), 0);
+                //wma3 = new TPobj(sqrtPeriod, threshold);
                 firstrun = true;
             }
 
             internal void Init(double thePrice)  // Initialize Indicator
             {
-                wma1.Init(thePrice);
-                wma2.Init(thePrice);
-                wma3.Init(thePrice);
-                value = wma3.value;
+                tpobj.Init(thePrice);
+                value = tpobj.value;
                 prevValue = value;
                 isAbove = false;
                 isBelow = false;
-                isRising = false;
-                isFalling = false;
+                trendDir = 0;
+                prevTrendDir = 0;
+                trendChanged = false;
                 firstrun = false;
-                term3 = 0;
             }
 
             internal double Calc(double thePrice)  // Calculate Indicator values
             {
                 // HMA(n) = WMA(2 * WMA(n / 2) – WMA(n)), sqrt(n))
-                if (Period < 2)
-                    throw new Exception("HMAcalc: period < 2, invalid !!");
+                //CCI -> CCI[i] = (TP[i] - SMA7[i])/(0.015 * MD[i])
+                if (Period < 7)
+                    throw new Exception("CCI calc: period < 7, invalid !!");
+                //if (Threshold < 0)
+                //    throw new Exception("CCI calc: Threshold < 0, invalid !!");
                 if (firstrun)
                 {
                     Init(thePrice);
                 }
-                prevValue = value;
-                wma1.Calc(thePrice);
-                wma2.Calc(thePrice);
-                term3 = 2 * wma2.value - wma1.value;
-                value = wma3.Calc(term3);
-                isAbove = wma3.isAbove;
-                isBelow = wma3.isBelow;
+                //prevTrendDir = trendDir;
+                //prevValue = value;
+                sma_7 = tpobj.Calc(thePrice); //from the TPobj
+                md_7 = tpobj.md_diff; //from the TPobj
+                value = (thePrice - sma_7) / (0.015 * md_7);
+                //isAbove = wma3.isAbove;
+                //isBelow = wma3.isBelow;
+                //trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
+                //trendChanged = (trendDir * prevTrendDir < 0);
                 return value;
             }
         }
@@ -3167,23 +3180,25 @@ namespace Alveo.UserCode
         internal class TPobj
         {
             internal int Period;
-            double Threshold;
+            //double Threshold;
             internal double lastPrice;
             internal double prevValue;
             internal double value;
-            internal bool isAbove;
-            internal bool isBelow;
-            internal int trendDir;
-            internal int prevTrendDir;
-            internal bool trendChanged;
+            internal double md_diff;//7 Mean Deviation Sum
+            //internal bool isAbove;
+            //internal bool isBelow;
+            //internal int trendDir;
+            //internal int prevTrendDir;
+            //internal bool trendChanged;
             internal Queue<double> Q;
             internal int cnt2;
 
             TPobj()
             {
-                Period = 1;
-                Threshold = 0;
+                Period = 7;
+                //Threshold = 0;
                 value = 0;
+                md_diff = 0; //initiate the 7 mean deviation
                 lastPrice = double.MinValue;
                 Q = new Queue<double>();
             }
@@ -3191,7 +3206,7 @@ namespace Alveo.UserCode
             internal TPobj(int period, int threshold = 0) : this()
             {
                 Period = period;
-                Threshold = (double)threshold * 1e-6;
+                //Threshold = (double)threshold * 1e-6;
             }
 
             internal void Init(double price)
@@ -3203,32 +3218,42 @@ namespace Alveo.UserCode
 
             internal double Calc(double thePrice)
             {
-                prevValue = value;
-                value = 0;
-                lastPrice = thePrice;
+                //prevValue = value;
+                //value = 0;
+                //lastPrice = thePrice;
                 Q.Enqueue(thePrice);
                 while (Q.Count > Period)
                     Q.Dequeue();
                 var arr = Q.ToArray();
+                double md_diff_sum = 0;//MD total sum
                 cnt2 = arr.Length;
-                double sum = 0;
-                double mult = 0;
+                //double diff = 0;//MD initialization
                 for (int i = 0; i < cnt2; i++)
                 {
-                    mult += 1;
-                    value += mult * arr[i];
-                    sum += mult;
+                    value += arr[i];
                 }
-                if (sum > 0)
-                    value /= sum;
+                if (cnt2 > 0)
+                    value /= cnt2;// SMA calculation
                 else
                     value = double.MinValue;
-                var diff = value - prevValue;
-                isAbove = (diff > Threshold);
-                isBelow = (diff < -Threshold);
-                prevTrendDir = trendDir;
-                trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
-                trendChanged = (trendDir * prevTrendDir < 0);
+                for (int i = 0; i < cnt2; i++)//calculate MD
+                {
+                    value += arr[i];
+                }
+                for (int i = 0; i < cnt2; i++)
+                {
+                    md_diff_sum += Math.Abs(value - arr[i]);
+                }
+                if (cnt2 > 0)
+                    md_diff /= cnt2;// MD calculation
+                else
+                    md_diff = double.MinValue;
+                //var diff = value - prevValue;
+                //isAbove = (diff > Threshold);
+                //isBelow = (diff < -Threshold);
+                //prevTrendDir = trendDir;
+                //trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
+                //trendChanged = (trendDir * prevTrendDir < 0);
                 return value;
             }
         }
