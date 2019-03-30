@@ -3097,13 +3097,10 @@ namespace Alveo.UserCode
             internal TPobj wma2;
             internal TPobj wma3;
             internal int Period;
-            double Threshold;
-            int sqrtPeriod;
             internal bool isAbove;
             internal bool isBelow;
-            internal int trendDir;
-            internal int prevTrendDir;
-            internal bool trendChanged;
+            internal bool isRising;
+            internal bool isFalling;
             internal double value;
             internal double prevValue;
             internal bool firstrun;
@@ -3113,28 +3110,22 @@ namespace Alveo.UserCode
             // CCIobj constructor
             CCIobj()
             {
-                Period = 25;
-                Threshold = 0;
-                sqrtPeriod = (int)Math.Round(Math.Sqrt(Period));
+                Period = 7;
                 isAbove = false;
                 isBelow = false;
-                trendDir = 0;
-                prevTrendDir = 0;
-                trendChanged = false;
+                isRising = false;
+                isFalling = false;
                 value = double.MinValue;
                 prevValue = value;
             }
 
             // TPobj constructor with input parameters
-            internal CCIobj(GKAH_EA ea, int period, int threshold) : this()   // do HEMA() first
+            internal CCIobj(GKAH_EA ea, int period, int threshold) : this()   // do CCI() first
             {
                 this.ea = ea;
                 Period = period;
-                Threshold = (double)threshold * 1e-6;
-                sqrtPeriod = (int)Math.Round(Math.Sqrt((double)Period));
                 wma1 = new TPobj(period, 0);
                 wma2 = new TPobj((int)Math.Round(((double)period + 1) / 2), 0);
-                wma3 = new TPobj(sqrtPeriod, threshold);
                 firstrun = true;
             }
 
@@ -3147,9 +3138,8 @@ namespace Alveo.UserCode
                 prevValue = value;
                 isAbove = false;
                 isBelow = false;
-                trendDir = 0;
-                prevTrendDir = 0;
-                trendChanged = false;
+                isRising = false;
+                isFalling = false;
                 firstrun = false;
                 term3 = 0;
             }
@@ -3159,13 +3149,10 @@ namespace Alveo.UserCode
                 // HMA(n) = WMA(2 * WMA(n / 2) – WMA(n)), sqrt(n))
                 if (Period < 2)
                     throw new Exception("HMAcalc: period < 2, invalid !!");
-                if (Threshold < 0)
-                    throw new Exception("HMAcalc: Threshold < 0, invalid !!");
                 if (firstrun)
                 {
                     Init(thePrice);
                 }
-                prevTrendDir = trendDir;
                 prevValue = value;
                 wma1.Calc(thePrice);
                 wma2.Calc(thePrice);
@@ -3173,8 +3160,6 @@ namespace Alveo.UserCode
                 value = wma3.Calc(term3);
                 isAbove = wma3.isAbove;
                 isBelow = wma3.isBelow;
-                trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
-                trendChanged = (trendDir * prevTrendDir < 0);
                 return value;
             }
         }
