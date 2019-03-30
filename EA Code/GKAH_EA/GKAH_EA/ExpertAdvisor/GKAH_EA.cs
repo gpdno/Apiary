@@ -152,7 +152,7 @@ namespace Alveo.UserCode
         bool initialized;
         int TIF;                                // Time In Force for Pending orders in hours
 
-        HMAobj hma;                             // HMA Indicator instance variable
+        //HMAobj hma;                             // HMA Indicator instance variable
         CCIobj cci;                             // CCI Indicator instance variable
 
         TimeSpan fridayPause = new TimeSpan(12 + 2, 00, 00);         // Local time
@@ -208,8 +208,8 @@ namespace Alveo.UserCode
             TIF = 0;
 
             // ** Default User Setting values
-            HMA_period = 125;
-            Threshold = 38;
+            //HMA_period = 125;
+            //Threshold = 38;
             CCI_period = 7;
             //CCI_factor = 0.015;
             Stoploss = 18;
@@ -707,7 +707,7 @@ namespace Alveo.UserCode
                     int ticket1 = 0;
                     var digits = GetDigits();
                     var points = GetPoints();
-                    var trendChanged = (hma.trendDir != hma.prevTrendDir);
+                    //var trendChanged = (hma.trendDir != hma.prevTrendDir);
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
                     //if (trendChanged && !optimize)
@@ -984,11 +984,11 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.buyOpenOrders.Count > 0 && hma.isFalling)    // Close orders if HMA changed direction
-                    || (s.sellOpenOrders.Count > 0 && hma.isRrising))
+                if ((s.buyOpenOrders.Count > 0 && cci.isBelow)    // Close orders if HMA changed direction
+                    || (s.sellOpenOrders.Count > 0 && cci.isAbove))
                 {
                     if (!optimize)
-                        LogPrint("CheckExits: HMA trend changed. isRrising=" + hma.isRrising + " isFalling=" + hma.isFalling);
+                        LogPrint("CheckExits: CCI trend changed. isBelow=" + cci.isBelow + " isAbove=" + cci.isAbove);
                     closeAllTrades(reason: 55);
                     total = GetTotalOrders();
                 }
@@ -1034,7 +1034,8 @@ namespace Alveo.UserCode
 
         internal void InitInds()
         {
-            hma = new HMAobj(this, HMA_period, Threshold);
+            //hma = new HMAobj(this, HMA_period, Threshold);
+            cci = new CCIobj(this, CCI_period);
             if (simulate)
                 return;
             RefreshRates();
@@ -1045,11 +1046,13 @@ namespace Alveo.UserCode
             {
                 theBar = ChartBars[i];
                 thePrice = GetThePrice(PriceType, ref theBar);
-                hma.Calc(thePrice);
+                //hma.Calc(thePrice);
+                cci.Calc(thePrice);
             }
             LogPrint("InitInds: count=" + count
                 + " thePrice=" + thePrice.ToString("F5")
-                + " hma=" + hma.value.ToString("F5")
+                //+ " hma=" + hma.value.ToString("F5")
+                + " cci=" + cci.value.ToString("F5")
                 );
         }
 
