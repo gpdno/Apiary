@@ -98,3 +98,4 @@ C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.csproj.CopyComplete
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.exe
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.pdb
+C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.csprojAssemblyReference.cache

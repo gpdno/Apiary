@@ -71,9 +71,9 @@ namespace Alveo.UserCode
         [Description("Period in Bars [ex: 7]")]
         public int CCI_period { get; set; }
 
-        [Category("CCI")]
-        [Description("CCI factor [ex: 0.015]")]
-        public double CCI_factor { get; set; }
+        //[Category("CCI")]
+        //[Description("CCI factor [ex: 0.015]")]
+        //public double CCI_factor { get; set; }
 
         [Category("Settings")]
         [Description("Stoploss limit in Pips. [ex: 20]")]
@@ -210,8 +210,8 @@ namespace Alveo.UserCode
             // ** Default User Setting values
             HMA_period = 125;
             Threshold = 38;
-            CCI_period = 10;
-            CCI_factor = 0.015;
+            CCI_period = 7;
+            //CCI_factor = 0.015;
             Stoploss = 18;
             TakeProfit = 100;
             Quantity = 0.01;
@@ -419,7 +419,8 @@ namespace Alveo.UserCode
                         sessionClock = curTime.Subtract(sessionStartTM);
                     countBars++;
                     double thePrice = GetThePrice(PriceType, ref s.dI.bar);
-                    hma.Calc(thePrice);
+                    //hma.Calc(thePrice);
+                    cci.Calc(thePrice);
                     Monitor();                  // Monitor all orders
                     if (sessionEnded)
                         return 0;
@@ -698,8 +699,8 @@ namespace Alveo.UserCode
                 //if (total == 0 && atr.value >= MinATR * point)
                 if (total == 0)
                 {
-                    double priceDist = thePrice - hma.value;
-                    int priceDir = (priceDist > 0) ? 1 : -1;
+                    //double priceDist = thePrice - hma.value;
+                    //int priceDir = (priceDist > 0) ? 1 : -1;
                     Bar theBar = s.dI.bar;
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
                         return;  // conditions not right to Enter trades
@@ -709,16 +710,16 @@ namespace Alveo.UserCode
                     var trendChanged = (hma.trendDir != hma.prevTrendDir);
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
-                    if (trendChanged && !optimize)
-                        LogPrint("Strategy: trendChanged=" + trendChanged + " isRrising=" + hma.isRrising + " isFalling=" + hma.isFalling + " priceDir=" + priceDir);
-                    if (trendChanged && hma.isRrising && priceDir > 0)
+                    //if (trendChanged && !optimize)
+                    //    LogPrint("Strategy: trendChanged=" + trendChanged + " isRrising=" + hma.isRrising + " isFalling=" + hma.isFalling + " priceDir=" + priceDir);
+                    if (cci.isBelow && cci.isRising)
                     {
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if (trendChanged && hma.isFalling && priceDir < 0)
+                    else if (cci.isAbove && cci.isFalling)
                     {
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
@@ -3099,9 +3100,11 @@ namespace Alveo.UserCode
             //int sqrtPeriod;
             internal bool isAbove;
             internal bool isBelow;
-            internal int trendDir;
-            internal int prevTrendDir;
-            internal bool trendChanged;
+            internal bool isRising;
+            internal bool isFalling;
+            //internal int trendDir;
+            //internal int prevTrendDir;
+            //internal bool trendChanged;
             internal double value;
             internal double prevValue;
             internal bool firstrun;
@@ -3117,25 +3120,23 @@ namespace Alveo.UserCode
                 //sqrtPeriod = (int)Math.Round(Math.Sqrt(Period));
                 isAbove = false;
                 isBelow = false;
-                trendDir = 0;
+                isRising = false;
+                isFalling = false;
+                //trendDir = 0;
                 sma_7 = 0; //7 SMA 
                 md_7 = 0; // 7 MD
-                prevTrendDir = 0;
-                trendChanged = false;
+                //prevTrendDir = 0;
+                //trendChanged = false;
                 value = double.MinValue;
                 prevValue = value;
             }
 
             // TPobj constructor with input parameters
-            internal CCIobj(GKAH_EA ea, int period, int threshold) : this()   // do HEMA() first
+            internal CCIobj(GKAH_EA ea, int period) : this()   // do CCI() first
             {
                 this.ea = ea;
                 Period = period;
-                //Threshold = (double)threshold * 1e-6;
-                //sqrtPeriod = (int)Math.Round(Math.Sqrt((double)Period));
-                tpobj = new TPobj(period, 0);
-                //wma2 = new TPobj((int)Math.Round(((double)period + 1) / 2), 0);
-                //wma3 = new TPobj(sqrtPeriod, threshold);
+                tpobj = new TPobj(period);
                 firstrun = true;
             }
 
@@ -3146,29 +3147,45 @@ namespace Alveo.UserCode
                 prevValue = value;
                 isAbove = false;
                 isBelow = false;
-                trendDir = 0;
-                prevTrendDir = 0;
-                trendChanged = false;
+                isRising = false;
+                isFalling = false;
+                //trendDir = 0;
+                //prevTrendDir = 0;
+                //trendChanged = false;
                 firstrun = false;
             }
 
             internal double Calc(double thePrice)  // Calculate Indicator values
             {
-                // HMA(n) = WMA(2 * WMA(n / 2) – WMA(n)), sqrt(n))
                 //CCI -> CCI[i] = (TP[i] - SMA7[i])/(0.015 * MD[i])
                 if (Period < 7)
                     throw new Exception("CCI calc: period < 7, invalid !!");
-                //if (Threshold < 0)
-                //    throw new Exception("CCI calc: Threshold < 0, invalid !!");
                 if (firstrun)
                 {
                     Init(thePrice);
                 }
                 //prevTrendDir = trendDir;
-                //prevValue = value;
+                prevValue = value;
                 sma_7 = tpobj.Calc(thePrice); //from the TPobj
                 md_7 = tpobj.md_diff; //from the TPobj
                 value = (thePrice - sma_7) / (0.015 * md_7);
+                if (value > 100)
+                {
+                    isAbove = true;
+                }
+                else if (value < -100)
+                {
+                    isBelow = true;
+                }
+
+                if (value > prevValue)
+                {
+                    isRising = true;
+                }
+                else if (value < prevValue)
+                {
+                    isFalling = true;
+                }
                 //isAbove = wma3.isAbove;
                 //isBelow = wma3.isBelow;
                 //trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
@@ -3181,9 +3198,9 @@ namespace Alveo.UserCode
         {
             internal int Period;
             //double Threshold;
-            internal double lastPrice;
-            internal double prevValue;
-            internal double value;
+            //internal double lastPrice;
+            //internal double prevValue;
+            internal double value;// 7 simple moving average of the typical price
             internal double md_diff;//7 Mean Deviation Sum
             //internal bool isAbove;
             //internal bool isBelow;
@@ -3199,11 +3216,11 @@ namespace Alveo.UserCode
                 //Threshold = 0;
                 value = 0;
                 md_diff = 0; //initiate the 7 mean deviation
-                lastPrice = double.MinValue;
+                //lastPrice = double.MinValue;
                 Q = new Queue<double>();
             }
 
-            internal TPobj(int period, int threshold = 0) : this()
+            internal TPobj(int period) : this()
             {
                 Period = period;
                 //Threshold = (double)threshold * 1e-6;
@@ -3212,7 +3229,7 @@ namespace Alveo.UserCode
             internal void Init(double price)
             {
                 value = price;
-                prevValue = value;
+                //prevValue = value;
                 Q.Clear();
             }
 
@@ -3245,7 +3262,7 @@ namespace Alveo.UserCode
                     md_diff_sum += Math.Abs(value - arr[i]);
                 }
                 if (cnt2 > 0)
-                    md_diff /= cnt2;// MD calculation
+                    md_diff = md_diff_sum / cnt2;// MD calculation
                 else
                     md_diff = double.MinValue;
                 //var diff = value - prevValue;
