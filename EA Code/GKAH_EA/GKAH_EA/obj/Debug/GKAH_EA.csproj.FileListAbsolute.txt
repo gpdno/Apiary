@@ -1,5 +1,3 @@
-C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.exe.config
-C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.csproj.CoreCompileInputs.cache
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\GKAH_EA.exe.config
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\GKAH_EA.exe.manifest
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\GKAH_EA.application
@@ -93,6 +91,8 @@ C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\awesomi
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\inspector.pak
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\xinput9_1_0.dll
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\bin\Debug\pdf_js.pak
+C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.exe.config
+C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.csproj.CoreCompileInputs.cache
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.exe.manifest
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.application
 C:\Users\gdeni\Documents\GitHub\Apiary\EA Code\GKAH_EA\GKAH_EA\obj\Debug\GKAH_EA.csproj.CopyComplete

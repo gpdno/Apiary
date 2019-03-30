@@ -88,7 +88,7 @@ namespace Alveo.UserCode
         public double Quantity { get; set; }
 
         [Category("Settings")]
-        [Description("Price type to be used for HMA calculations [ex: PRICE_P7]")]
+        [Description("Price type to be used for HMA calculations [ex: PRICE_CLOSE]")]
         public PriceTypes PriceType { get; set; }
 
         [Category("Settings")]
@@ -200,7 +200,7 @@ namespace Alveo.UserCode
             copyright = "(C)2019 GPDNO Trading LLC. all rights reserved";
             link = "";
             simSymbol = pair;
-            simTimeframe = TimeFrame.M15;
+            simTimeframe = TimeFrame.M5;
             simBars = 0;
             symbol = simSymbol;
             ticketNum = 0;
@@ -216,7 +216,7 @@ namespace Alveo.UserCode
             TakeProfit = 100;
             Quantity = 0.01;
             MaxSpread = 25;
-            PriceType = PriceTypes.PRICE_P7;
+            PriceType = PriceTypes.PRICE_TYPICAL;
 
             curPrice = double.MinValue;
             curTime = GetCurTime();
@@ -712,14 +712,14 @@ namespace Alveo.UserCode
                     int tp = TakeProfit * 10;  // Points
                     //if (trendChanged && !optimize)
                     //    LogPrint("Strategy: trendChanged=" + trendChanged + " isRrising=" + hma.isRrising + " isFalling=" + hma.isFalling + " priceDir=" + priceDir);
-                    if (cci.isBelow && cci.isRising)
+                    if (cci.isBelow && cci.isRising == true) 
                     {
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if (cci.isAbove && cci.isFalling)
+                    else if (cci.isAbove && cci.isFalling == true)
                     {
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
@@ -3099,37 +3099,23 @@ namespace Alveo.UserCode
         {
             internal TPobj tpobj;
             internal int Period;
-            //double Threshold;
-            //int sqrtPeriod;
             internal bool isAbove;
             internal bool isBelow;
             internal bool isRising;
             internal bool isFalling;
-            //internal int trendDir;
-            //internal int prevTrendDir;
-            //internal bool trendChanged;
             internal double value;
             internal double prevValue;
             internal bool firstrun;
-            internal double sma_7;//7 SMA 
-            internal double md_7;// 7 MD
             GKAH_EA ea;
 
             // CCIobj constructor
             CCIobj()
             {
                 Period = 7;
-                //Threshold = 0;
-                //sqrtPeriod = (int)Math.Round(Math.Sqrt(Period));
                 isAbove = false;
                 isBelow = false;
                 isRising = false;
                 isFalling = false;
-                //trendDir = 0;
-                sma_7 = 0; //7 SMA 
-                md_7 = 0; // 7 MD
-                //prevTrendDir = 0;
-                //trendChanged = false;
                 value = double.MinValue;
                 prevValue = value;
             }
@@ -3152,9 +3138,6 @@ namespace Alveo.UserCode
                 isBelow = false;
                 isRising = false;
                 isFalling = false;
-                //trendDir = 0;
-                //prevTrendDir = 0;
-                //trendChanged = false;
                 firstrun = false;
             }
 
@@ -3167,32 +3150,32 @@ namespace Alveo.UserCode
                 {
                     Init(thePrice);
                 }
-                //prevTrendDir = trendDir;
+                
                 prevValue = value;
-                sma_7 = tpobj.Calc(thePrice); //from the TPobj
-                md_7 = tpobj.md_diff; //from the TPobj
-                value = (thePrice - sma_7) / (0.015 * md_7);
+                value = tpobj.Calc(thePrice); //from the TPobj
+           
                 if (value > 100)
                 {
                     isAbove = true;
+                    isBelow = false;
                 }
                 else if (value < -100)
                 {
+                    isAbove = false;
                     isBelow = true;
                 }
 
                 if (value > prevValue)
                 {
                     isRising = true;
+                    isFalling = false;
                 }
                 else if (value < prevValue)
                 {
+                    isRising = false;
                     isFalling = true;
                 }
-                //isAbove = wma3.isAbove;
-                //isBelow = wma3.isBelow;
-                //trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
-                //trendChanged = (trendDir * prevTrendDir < 0);
+                
                 return value;
             }
         }
@@ -3200,80 +3183,48 @@ namespace Alveo.UserCode
         internal class TPobj
         {
             internal int Period;
-            //double Threshold;
-            //internal double lastPrice;
-            //internal double prevValue;
-            internal double value;// 7 simple moving average of the typical price
-            internal double md_diff;//7 Mean Deviation Sum
-            //internal bool isAbove;
-            //internal bool isBelow;
-            //internal int trendDir;
-            //internal int prevTrendDir;
-            //internal bool trendChanged;
+            internal double prevValue;
+            internal double value;
+            internal double md_diff;
             internal Queue<double> Q;
             internal int cnt2;
 
             TPobj()
             {
-                Period = 7;
-                //Threshold = 0;
+                Period = 7;// CCI Period for calculations
                 value = 0;
-                md_diff = 0; //initiate the 7 mean deviation
-                //lastPrice = double.MinValue;
+                md_diff = 0; //initiate the mean deviation
                 Q = new Queue<double>();
             }
 
             internal TPobj(int period) : this()
             {
                 Period = period;
-                //Threshold = (double)threshold * 1e-6;
             }
 
             internal void Init(double price)
             {
                 value = price;
-                //prevValue = value;
+                prevValue = value;
                 Q.Clear();
             }
 
             internal double Calc(double thePrice)
             {
-                //prevValue = value;
-                //value = 0;
-                //lastPrice = thePrice;
                 Q.Enqueue(thePrice);
                 while (Q.Count > Period)
                     Q.Dequeue();
                 var arr = Q.ToArray();
-                double md_diff_sum = 0;//MD total sum
+                var sma = arr.Average();// SMA Calculation
+                double md_diff_sum = 0;
                 cnt2 = arr.Length;
-                //double diff = 0;//MD initialization
                 for (int i = 0; i < cnt2; i++)
                 {
-                    value += arr[i];
+                    md_diff_sum += Math.Abs(sma - arr[i]);
                 }
-                if (cnt2 > 0)
-                    value /= cnt2;// SMA calculation
-                else
-                    value = double.MinValue;
-                for (int i = 0; i < cnt2; i++)//calculate MD
-                {
-                    value += arr[i];
-                }
-                for (int i = 0; i < cnt2; i++)
-                {
-                    md_diff_sum += Math.Abs(value - arr[i]);
-                }
-                if (cnt2 > 0)
-                    md_diff = md_diff_sum / cnt2;// MD calculation
-                else
-                    md_diff = double.MinValue;
-                //var diff = value - prevValue;
-                //isAbove = (diff > Threshold);
-                //isBelow = (diff < -Threshold);
-                //prevTrendDir = trendDir;
-                //trendDir = isAbove ? 1 : (isBelow ? -1 : 0);
-                //trendChanged = (trendDir * prevTrendDir < 0);
+                
+                md_diff = md_diff_sum / cnt2;// MD calculation
+                value = (thePrice - sma) / (0.015 * md_diff);// CCI Calculation
                 return value;
             }
         }
