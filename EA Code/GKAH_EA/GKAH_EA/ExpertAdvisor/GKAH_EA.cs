@@ -699,21 +699,18 @@ namespace Alveo.UserCode
                 //if (total == 0 && atr.value >= MinATR * point)
                 if (total == 0)
                 {
-                    //double priceDist = thePrice - hma.value;
-                    //int priceDir = (priceDist > 0) ? 1 : -1;
                     Bar theBar = s.dI.bar;
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
                         return;  // conditions not right to Enter trades
                     int ticket1 = 0;
                     var digits = GetDigits();
                     var points = GetPoints();
-                    //var trendChanged = (hma.trendDir != hma.prevTrendDir);
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
-                    //if (trendChanged && !optimize)
-                    //    LogPrint("Strategy: trendChanged=" + trendChanged + " isRrising=" + hma.isRrising + " isFalling=" + hma.isFalling + " priceDir=" + priceDir);
+
                     if (cci.isBelow && cci.isRising == true) 
                     {
+                        LogPrint("CCI Strategy Long" + cci.isBelow + "is below 100 and " + cci.isRising + " is rising" + cci.value);
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
@@ -721,6 +718,7 @@ namespace Alveo.UserCode
                     }
                     else if (cci.isAbove && cci.isFalling == true)
                     {
+                        LogPrint("CCI Strategy Short" + cci.isAbove + "is above 100 and " + cci.isFalling + " is falling" + cci.value);
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
@@ -981,7 +979,7 @@ namespace Alveo.UserCode
 
         internal void CheckExits(double thePrice)   // Check order Exit conditions      
         {
-            total = GetTotalOrders();               // get list and count of current trades
+            /*total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
                 if ((s.buyOpenOrders.Count > 0 && cci.isBelow)    // Close orders if HMA changed direction
@@ -993,7 +991,8 @@ namespace Alveo.UserCode
                     total = GetTotalOrders();
                 }
                 RemoveClosedOrders();
-            }
+            }*/
+            return;
         }
         #endregion
 
@@ -1034,7 +1033,6 @@ namespace Alveo.UserCode
 
         internal void InitInds()
         {
-            //hma = new HMAobj(this, HMA_period, Threshold);
             cci = new CCIobj(this, CCI_period);
             if (simulate)
                 return;
@@ -1046,12 +1044,10 @@ namespace Alveo.UserCode
             {
                 theBar = ChartBars[i];
                 thePrice = GetThePrice(PriceType, ref theBar);
-                //hma.Calc(thePrice);
                 cci.Calc(thePrice);
             }
             LogPrint("InitInds: count=" + count
                 + " thePrice=" + thePrice.ToString("F5")
-                //+ " hma=" + hma.value.ToString("F5")
                 + " cci=" + cci.value.ToString("F5")
                 );
         }
@@ -1904,7 +1900,8 @@ namespace Alveo.UserCode
                         "," + fdStr
                         + "," + order.CloseDate.ToString("dd MMM yyyy HH:mm:ss")
                         + "," + order.ClosePrice.ToString("F5")
-                        + "," + dProfit.ToString("F2");
+                        + "," + dProfit.ToString("F2")
+                        + "," + cci.value.ToString("F4");
                     LogPrint("TradeClosed: orderID=" + orderID
                         + " side=" + order.Side
                         + " price=" + order.ClosePrice.ToString("F5")
