@@ -20,24 +20,22 @@ Calculations:
 PositionSize = AccountValue/FixedLoss /1000
 
 
-Trade Entry:
-If no open trades and (Ask - Bid) < MaxSpreed
+CCI Calculations on excel spreedsheet
+Column I:  Typical Price -> TP[i] = (High[i] + Low[i] + Close[i]) / 3
+Colunm J:  7 period SMA -> SMA7[i] = (Close[i]+Close[i-1]+...+Close[i-7])/7
+Column K: 7 period MD -> MD[i] = (ABS(TP[i]-SMA[i])+ABS(TP[i-1]-SMA[i-1])+...+ABS(TP[i-7]-SMA[i-7]))/7
+Column L:  CCI -> CCI[i] = (TP[i] - SMA7[i])/(0.015 * MD[i])
 
+Trade Boleans
+IF( CCI[i] > 100, CCIgreater100[i] = TRUE)
+IF( CCI[i] < -100, CCIless100[i] = TRUE)
 
-If CCI < -100 (Long position)
-TakeProfit = Current Candle.Open + FixedProfit
-SlopLoss = Current Candle.Open - FixedLoss 
-Open Limit Order(Side: Buy, Qty: PositionSize , SL: StopLoss, TP:   TakeProfit)
+IF(CCI[i] > CCI[i-1], isRising[i] = TRUE)
+IF(CCI[i] < CCI[i-1], isFalling[i] = TRUE)
 
+Trade Entry Logic
+IF(CCIless100[i] = TRUE AND isRising[i] = TRUE)
+   Open LONG position
 
-If CCI > 100 (Short position)
-TakeProfit = Current Candle.Open - FixedProfit
-SlopLoss = Current Candle.Open + FixedLoss 
-Open Limit Order(Side: Sell, Qty: PositionSize , SL: StopLoss, TP:   TakeProfit)
-Trade Exit:
-TakeProfit || StopLoss
-
-
-Pending Cancel:
-        If Open.Order.Pending & Current Candle = Current Candle +1
-Cancel Pending Order
+IF(CCIgreater100[i] = TRUE AND isFalling[i] = TRUE)
+   Open SHORT position
