@@ -60,21 +60,21 @@ namespace Alveo.UserCode
         #region User Settings          // ** Add Alveo EA User Settings Declared here
 
 
-        [Category("HMA")]
+        /*[Category("HMA")]
         [Description("HEMA Period in Bars [ex: 7]")]
         public int HMA_period { get; set; }
 
         [Category("HMA")]
         [Description("HMA Threshold * 1e-6 [ex: 20]")]
-        public int Threshold { get; set; }
+        public int Threshold { get; set; }*/
 
-        [Category("CCI")]
+        /*[Category("CCI")]
         [Description("Period in Bars [ex: 7]")]
         public int CCI_period { get; set; }
 
-        //[Category("CCI")]
-        //[Description("CCI factor [ex: 0.015]")]
-        //public double CCI_factor { get; set; }
+        [Category("CCI")]
+        [Description("CCI factor [ex: 0.015]")]
+        public double CCI_factor { get; set; }*/
 
         [Category("Settings")]
         [Description("Stoploss limit in Pips. [ex: 20]")]
@@ -88,9 +88,9 @@ namespace Alveo.UserCode
         [Description("Number of Standard lots to trade. [ex: 0.02]")]
         public double Quantity { get; set; }
 
-        [Category("Settings")]
+        /*[Category("Settings")]
         [Description("Price type to be used for HMA calculations [ex: PRICE_CLOSE]")]
-        public PriceTypes PriceType { get; set; }
+        public PriceTypes PriceType { get; set; }*/
 
         [Category("Settings")]
         [Description("Maximum Bid/Ask Spread in Points to Open trades. [ex: 25]")]
@@ -99,7 +99,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "2x5";             // EA version - used to identify the output file
+        string version = "r0.2 2x5";             // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -121,6 +121,8 @@ namespace Alveo.UserCode
         public bool TPflag;
         public bool SLflag;
         Random rnd = new Random(2874);      // random selector for Sl or TP simulation selector
+        public int CCI_period;              //
+        public PriceTypes PriceType;        //
 
         string symbol;                      // chart symbol
         double pipPos;                      // Pip position
@@ -211,7 +213,7 @@ namespace Alveo.UserCode
             // ** Default User Setting values
             //HMA_period = 125;
             //Threshold = 38;
-            CCI_period = 7;
+            CCI_period = 7;  // fixed CCI Period
             //CCI_factor = 0.015;
             Stoploss = 5;  // stop loss in pips
             TakeProfit = 2;  // take profit in pips
@@ -606,6 +608,7 @@ namespace Alveo.UserCode
             internal double change;
             internal double pctChange;
             internal double HEMA;
+            internal double CCI;
             internal double smoothedK;
             internal double smoothedD;
             internal double slowedD;
@@ -660,6 +663,7 @@ namespace Alveo.UserCode
                 typical = 0;
                 change = 0;
                 HEMA = 0;
+                CCI = 0;
                 smoothedK = 50;
                 smoothedD = 50;
                 slowedD = 50;
@@ -986,14 +990,14 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.buyOpenOrders.Count > 0)    // Close orders if HMA changed direction
+                /*if ((s.buyOpenOrders.Count > 0)    // Close orders if HMA changed direction
                     || (s.sellOpenOrders.Count > 0))
                 {
                     if (!optimize)
                         LogPrint("CheckExits: CCI trend changed. isBelow=" + " isAbove=");
                     closeAllTrades(reason: 55);
                     total = GetTotalOrders();
-                }
+                }*/
                 RemoveClosedOrders();
             }
             return;
