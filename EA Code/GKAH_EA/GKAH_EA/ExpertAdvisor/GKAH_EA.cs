@@ -32,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using Alveo.Interfaces.UserCode;
 using Alveo.Common.Classes;
 using Alveo.Common.Enums;
@@ -98,7 +99,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "1.0";             // EA version
+        string version = "2x5";             // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -167,7 +168,7 @@ namespace Alveo.UserCode
         int sessionMondayThursdayClose = 86400; // 24:00
         int sessionFridayOpen = 0;     // 00:00
         int sessionFridayClose = 86400; // 24:00
-        bool sessionIgnoreSunday = true;
+        bool sessionIgnoreSunday = true; // will not trade on Sunday when set to true
         bool sessionCloseAtSessionClose = true;
         bool sessionCloseAtFridayClose = true;
 
@@ -200,7 +201,7 @@ namespace Alveo.UserCode
             copyright = "(C)2019 GPDNO Trading LLC. all rights reserved";
             link = "";
             simSymbol = pair;
-            simTimeframe = TimeFrame.M5;
+            simTimeframe = TimeFrame.M5; // sets timeframe for trading pair
             simBars = 0;
             symbol = simSymbol;
             ticketNum = 0;
@@ -212,11 +213,11 @@ namespace Alveo.UserCode
             //Threshold = 38;
             CCI_period = 7;
             //CCI_factor = 0.015;
-            Stoploss = 18;
-            TakeProfit = 100;
-            Quantity = 0.01;
+            Stoploss = 5;  // stop loss in pips
+            TakeProfit = 2;  // take profit in pips
+            Quantity = 0.01; // lot size
             MaxSpread = 25;
-            PriceType = PriceTypes.PRICE_TYPICAL;
+            PriceType = PriceTypes.PRICE_TYPICAL; // used for calculating CCI
 
             curPrice = double.MinValue;
             curTime = GetCurTime();
@@ -224,7 +225,7 @@ namespace Alveo.UserCode
             curBars = 0;
             riskLimit = 1.8;                // in Pips,  i.e. 1.8% of AccountBallance for 1 Standard lot
             riskLimitReached = false;
-            simAccountBalance = 2000;
+            simAccountBalance = 10000;
             simFreeMargin = simAccountBalance;
             accountNumber = 0;
             riskLimitReached = false;
@@ -277,7 +278,7 @@ namespace Alveo.UserCode
                 //TickValue = GetTickValue();
                 var tf = timeFrame;
                 var tfStr = (tf != TimeFrame.Unknown) ? tf.ToString() : "S10";
-                dataFileDir = "C:\\temp\\" + this.Name + " " + pair.Replace('/', '-') + " " + tfStr + " v" + version + "\\";
+                dataFileDir = "C:\\temp\\" + this.Name + " " + pair.Replace('/', '-') + " " + tfStr + " v" + version + "\\"; // output file name
                 magicStr = this.Name + "," + symbol.Replace("/", "") + "," + tfStr;
                 if (s == null)
                     s = new EA_State();
@@ -684,7 +685,7 @@ namespace Alveo.UserCode
         {
             try
             {
-                //if (!optimize) LogPrint("Strategy started.");
+                if (!optimize) LogPrint("Strategy started.");
                 if (sessionEnded)
                     return;
                 DoStartSession();                   // if startSession: initialize data; closeAllTrades; cleanup
@@ -694,6 +695,7 @@ namespace Alveo.UserCode
                     return;
                 double thePrice = GetThePrice(PriceType, ref s.dI.bar);
                 double closePrice = s.dI.close;
+                Debug.WriteLine("price is " + thePrice);
                 CheckExits(thePrice);
                 total = GetTotalOrders();           // get list and count of current trades
                 //if (total == 0 && atr.value >= MinATR * point)
@@ -707,18 +709,20 @@ namespace Alveo.UserCode
                     var points = GetPoints();
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
-
-                    if (cci.isBelow && cci.isRising == true) 
+                    Debug.WriteLine("Hello...the price is " + thePrice);
+                    if (cci.cciVal == -1 && cci.cciTrend == 1)
                     {
-                        LogPrint("CCI Strategy Long" + cci.isBelow + "is below 100 and " + cci.isRising + " is rising" + cci.value);
+                        LogPrint("CCI Strategy Long - CCI is below 100 and rising: " + cci.value);
+                        Debug.WriteLine("Enter long" + cci.value);
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if (cci.isAbove && cci.isFalling == true)
+                    else if (cci.cciVal == 1 && cci.cciTrend == -1)
                     {
-                        LogPrint("CCI Strategy Short" + cci.isAbove + "is above 100 and " + cci.isFalling + " is falling" + cci.value);
+                        LogPrint("CCI Strategy Short - is above 100 and falling: " + cci.value);
+                        Debug.WriteLine("Enter short " + cci.value);
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
@@ -979,19 +983,19 @@ namespace Alveo.UserCode
 
         internal void CheckExits(double thePrice)   // Check order Exit conditions      
         {
-            /*total = GetTotalOrders();               // get list and count of current trades
+            total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.buyOpenOrders.Count > 0 && cci.isBelow)    // Close orders if HMA changed direction
-                    || (s.sellOpenOrders.Count > 0 && cci.isAbove))
+                if ((s.buyOpenOrders.Count > 0)    // Close orders if HMA changed direction
+                    || (s.sellOpenOrders.Count > 0))
                 {
                     if (!optimize)
-                        LogPrint("CheckExits: CCI trend changed. isBelow=" + cci.isBelow + " isAbove=" + cci.isAbove);
+                        LogPrint("CheckExits: CCI trend changed. isBelow=" + " isAbove=");
                     closeAllTrades(reason: 55);
                     total = GetTotalOrders();
                 }
                 RemoveClosedOrders();
-            }*/
+            }
             return;
         }
         #endregion
@@ -1900,16 +1904,17 @@ namespace Alveo.UserCode
                         "," + fdStr
                         + "," + order.CloseDate.ToString("dd MMM yyyy HH:mm:ss")
                         + "," + order.ClosePrice.ToString("F5")
-                        + "," + dProfit.ToString("F2")
-                        + "," + cci.value.ToString("F4");
+                        + "," + dProfit.ToString("F2");
                     LogPrint("TradeClosed: orderID=" + orderID
                         + " side=" + order.Side
                         + " price=" + order.ClosePrice.ToString("F5")
-                        + " qty=" + order.Quantity.ToString("F2")
-                        + " dProfit=" + dProfit.ToString("F5"));
+                        + " qty=" + order.Quantity.ToString("F2"));
+                        //+ " dProfit=" + dProfit.ToString("F5"));
                     if (firstLine)
                     {
-                        WriteTradeLog("EA,symbol,tf,Id,side,qty,openDate,openPrice,StopLoss,TakeProfit,ATR,Vol,fillDate,closeDate,closePrice,profit,closeType,balance", true);
+                        WriteTradeLog("EA,Symbol,TF,Id,side,qty,OpenDate,OpenPrice,StopLoss," +
+                            "TakeProfit, OpenDate,CloseDate,closePrice,profit,closeType," +
+                            "balance", true);
                         firstLine = false;
                     }
                     WriteTradeLog(order.Comment + ", " + order.CloseType.ToString() + ","
@@ -3096,10 +3101,10 @@ namespace Alveo.UserCode
         {
             internal TPobj tpobj;
             internal int Period;
-            internal bool isAbove;
-            internal bool isBelow;
-            internal bool isRising;
-            internal bool isFalling;
+            internal int cciVal;
+            //internal bool isBelow;
+            internal int cciTrend;
+            //internal bool isFalling;
             internal double value;
             internal double prevValue;
             internal bool firstrun;
@@ -3109,10 +3114,10 @@ namespace Alveo.UserCode
             CCIobj()
             {
                 Period = 7;
-                isAbove = false;
-                isBelow = false;
-                isRising = false;
-                isFalling = false;
+                cciVal = 0;
+                //isBelow = false;
+                cciTrend = 0;
+                //isFalling = false;
                 value = double.MinValue;
                 prevValue = value;
             }
@@ -3131,10 +3136,10 @@ namespace Alveo.UserCode
                 tpobj.Init(thePrice);
                 value = tpobj.value;
                 prevValue = value;
-                isAbove = false;
-                isBelow = false;
-                isRising = false;
-                isFalling = false;
+                cciVal = 0;
+                //isBelow = false;
+                cciTrend = 0;
+                //isFalling = false;
                 firstrun = false;
             }
 
@@ -3147,32 +3152,43 @@ namespace Alveo.UserCode
                 {
                     Init(thePrice);
                 }
-                
+
                 prevValue = value;
                 value = tpobj.Calc(thePrice); //from the TPobj
-           
+
                 if (value > 100)
                 {
-                    isAbove = true;
-                    isBelow = false;
+                    cciVal = 1;
+                    Debug.WriteLine("CCI is above 100");
                 }
                 else if (value < -100)
                 {
-                    isAbove = false;
-                    isBelow = true;
+                    cciVal = -1;
+                    Debug.WriteLine("CCI is below -100");
+                }
+                else
+                {
+                    cciVal = 0;
                 }
 
                 if (value > prevValue)
                 {
-                    isRising = true;
-                    isFalling = false;
+                    cciTrend = 1;
+                    Debug.WriteLine("CCI is Rising");
                 }
-                else if (value < prevValue)
+                else
                 {
-                    isRising = false;
-                    isFalling = true;
+                    cciTrend = -1;
+                    Debug.WriteLine("CCI is Falling");
                 }
-                
+
+                Debug.WriteLine(" ");
+                Debug.WriteLine("***Break***");
+                Debug.WriteLine("the price " + thePrice);
+                Debug.WriteLine("CCI is " + value);
+                Debug.WriteLine("cciVal is " + cciVal);
+                Debug.WriteLine("cciTrend is " + cciTrend);
+                Debug.WriteLine("***Break***");
                 return value;
             }
         }
@@ -3219,10 +3235,18 @@ namespace Alveo.UserCode
                 {
                     md_diff_sum += Math.Abs(sma - arr[i]);
                 }
-                
+
                 md_diff = md_diff_sum / cnt2;// MD calculation
                 value = (thePrice - sma) / (0.015 * md_diff);// CCI Calculation
-                return value;
+                if (double.IsNaN(value) == false)
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0.0;
+                }
+
             }
         }
 
