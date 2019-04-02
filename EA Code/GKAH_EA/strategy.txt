@@ -22,8 +22,8 @@ PositionSize = AccountValue/FixedLoss /1000
 
 CCI Calculations on excel spreedsheet
 Column I:  Typical Price -> TP[i] = (High[i] + Low[i] + Close[i]) / 3
-Colunm J:  7 period SMA -> SMA7[i] = (Close[i]+Close[i-1]+...+Close[i-7])/7
-Column K: 7 period MD -> MD[i] = (ABS(TP[i]-SMA[i])+ABS(TP[i-1]-SMA[i-1])+...+ABS(TP[i-7]-SMA[i-7]))/7
+Colunm J:  7 period SMA -> SMA7[i] = (TP[i] + TP[i-1] +...+ TP[i-7])/7
+Column K: 7 period MD -> MD[i] = (ABS(TP[i]-SMA[i]) + ABS(TP[i-1]-SMA[i-1]) +...+ ABS(TP[i-7]-SMA[i-7]))/7
 Column L:  CCI -> CCI[i] = (TP[i] - SMA7[i])/(0.015 * MD[i])
 
 Trade Boleans

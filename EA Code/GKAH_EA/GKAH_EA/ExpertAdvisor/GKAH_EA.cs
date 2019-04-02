@@ -59,15 +59,6 @@ namespace Alveo.UserCode
 
         #region User Settings          // ** Add Alveo EA User Settings Declared here
 
-
-        /*[Category("HMA")]
-        [Description("HEMA Period in Bars [ex: 7]")]
-        public int HMA_period { get; set; }
-
-        [Category("HMA")]
-        [Description("HMA Threshold * 1e-6 [ex: 20]")]
-        public int Threshold { get; set; }*/
-
         /*[Category("CCI")]
         [Description("Period in Bars [ex: 7]")]
         public int CCI_period { get; set; }
@@ -77,20 +68,16 @@ namespace Alveo.UserCode
         public double CCI_factor { get; set; }*/
 
         [Category("Settings")]
-        [Description("Stoploss limit in Pips. [ex: 20]")]
+        [Description("Stoploss limit in Pips. [ex: 5]")]
         public int Stoploss { get; set; }
 
         [Category("Settings")]
-        [Description("TakeProfit limit in Pips. [ex: 20]")]
+        [Description("TakeProfit limit in Pips. [ex: 2]")]
         public int TakeProfit { get; set; }
 
         [Category("Settings")]
-        [Description("Number of Standard lots to trade. [ex: 0.02]")]
+        [Description("Number of Standard lots to trade. [ex: 0.10]")]
         public double Quantity { get; set; }
-
-        /*[Category("Settings")]
-        [Description("Price type to be used for HMA calculations [ex: PRICE_CLOSE]")]
-        public PriceTypes PriceType { get; set; }*/
 
         [Category("Settings")]
         [Description("Maximum Bid/Ask Spread in Points to Open trades. [ex: 25]")]
@@ -155,7 +142,6 @@ namespace Alveo.UserCode
         bool initialized;
         int TIF;                                // Time In Force for Pending orders in hours
 
-        //HMAobj hma;                             // HMA Indicator instance variable
         CCIobj cci;                             // CCI Indicator instance variable
 
         TimeSpan fridayPause = new TimeSpan(12 + 2, 00, 00);         // Local time
@@ -211,13 +197,10 @@ namespace Alveo.UserCode
             TIF = 0;
 
             // ** Default User Setting values
-            //HMA_period = 125;
-            //Threshold = 38;
             CCI_period = 7;  // fixed CCI Period
-            //CCI_factor = 0.015;
             Stoploss = 5;  // stop loss in pips
             TakeProfit = 2;  // take profit in pips
-            Quantity = 0.01; // lot size
+            Quantity = 0.1; // lot size
             MaxSpread = 25;
             PriceType = PriceTypes.PRICE_TYPICAL; // used for calculating CCI
 
@@ -422,7 +405,6 @@ namespace Alveo.UserCode
                         sessionClock = curTime.Subtract(sessionStartTM);
                     countBars++;
                     double thePrice = GetThePrice(PriceType, ref s.dI.bar);
-                    //hma.Calc(thePrice);
                     cci.Calc(thePrice);
                     Monitor();                  // Monitor all orders
                     if (sessionEnded)
