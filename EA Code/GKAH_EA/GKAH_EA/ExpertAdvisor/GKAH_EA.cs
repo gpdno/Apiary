@@ -76,11 +76,11 @@ namespace Alveo.UserCode
         public int TakeProfit { get; set; }
 
         [Category("Settings")]
-        [Description("Number of Standard lots to trade. [ex: 0.10]")]
+        [Description("Number of Standard lots to trade. [ex: 0.05]")]
         public double Quantity { get; set; }
 
         [Category("Settings")]
-        [Description("Maximum Bid/Ask Spread in Points to Open trades. [ex: 25]")]
+        [Description("Maximum Bid/Ask Spread in Points to Open trades. [ex: 2.5]")]
         public int MaxSpread { get; set; }
 
         #endregion
@@ -116,6 +116,7 @@ namespace Alveo.UserCode
         double point;                       // Point multipler
         int ticketNum;                      // order ticketNum
         internal double curPrice;           // current Price
+        bool candle;
         int accountNumber;                  // account number
         DateTime curTime;                   // current UTC Time
         internal BarData curBar;            // current Bar
@@ -200,7 +201,7 @@ namespace Alveo.UserCode
             CCI_period = 7;  // fixed CCI Period
             Stoploss = 5;  // stop loss in pips
             TakeProfit = 2;  // take profit in pips
-            Quantity = 0.1; // lot size
+            Quantity = 0.05; // lot size
             MaxSpread = 25;
             PriceType = PriceTypes.PRICE_TYPICAL; // used for calculating CCI
 
@@ -223,6 +224,7 @@ namespace Alveo.UserCode
             firstLine = true;
             maxRiskReached = false;
             initialized = true;
+            candle = false;
             //LoadPipValues();
         }
 
@@ -669,6 +671,7 @@ namespace Alveo.UserCode
         // ** Add your Trade Strategy here
         internal void Strategy()
         {
+
             try
             {
                 if (!optimize) LogPrint("Strategy started.");
@@ -680,6 +683,7 @@ namespace Alveo.UserCode
                 if (!OKtoEnterTrades())             // conditions not OK to Enter trades
                     return;
                 double thePrice = GetThePrice(PriceType, ref s.dI.bar);
+                double openPrice = s.dI.open;
                 double closePrice = s.dI.close;
                 Debug.WriteLine("price is " + thePrice);
                 CheckExits(thePrice);
@@ -695,8 +699,9 @@ namespace Alveo.UserCode
                     var points = GetPoints();
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
+                    if (openPrice < closePrice) candle = true;
                     Debug.WriteLine("Hello...the price is " + thePrice);
-                    if (cci.cciVal == -1 && cci.cciTrend == 1)
+                    if ( candle == true && cci.greaterneg100 == true && cci.prevlessneg100 == true)
                     {
                         LogPrint("CCI Strategy Long - CCI is below 100 and rising: " + cci.value);
                         Debug.WriteLine("Enter long" + cci.value);
@@ -705,7 +710,7 @@ namespace Alveo.UserCode
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if (cci.cciVal == 1 && cci.cciTrend == -1)
+                    else if ( candle == false && cci.lessplus100 == true && cci.prevgreaterplus100)
                     {
                         LogPrint("CCI Strategy Short - is above 100 and falling: " + cci.value);
                         Debug.WriteLine("Enter short " + cci.value);
@@ -3083,50 +3088,51 @@ namespace Alveo.UserCode
         /// tp = (high + low + close) / 3
         /// cci = (tp - SMA(tp)) / (Factor * meanDeviation(tp))
         ///
+         //CCI Object
+
         internal class CCIobj
         {
-            internal TPobj tpobj;
             internal int Period;
-            internal int cciVal;
-            //internal bool isBelow;
-            internal int cciTrend;
-            //internal bool isFalling;
+            internal bool greaterneg100;
+            internal bool lessneg100;
+            internal bool prevlessneg100;
+            internal bool greaterplus100;
+            internal bool prevgreaterplus100;
+            internal bool lessplus100;
+            internal bool firstrun;
             internal double value;
             internal double prevValue;
-            internal bool firstrun;
+            internal Queue<double> Q;
             GKAH_EA ea;
 
             // CCIobj constructor
             CCIobj()
             {
                 Period = 7;
-                cciVal = 0;
-                //isBelow = false;
-                cciTrend = 0;
-                //isFalling = false;
-                value = double.MinValue;
-                prevValue = value;
+                firstrun = true;
+                Q = new Queue<double>();
             }
 
-            // TPobj constructor with input parameters
+            // CCIobj constructor with input parameters
             internal CCIobj(GKAH_EA ea, int period) : this()   // do CCI() first
             {
                 this.ea = ea;
                 Period = period;
-                tpobj = new TPobj(period);
                 firstrun = true;
             }
 
             internal void Init(double thePrice)  // Initialize Indicator
             {
-                tpobj.Init(thePrice);
-                value = tpobj.value;
-                prevValue = value;
-                cciVal = 0;
-                //isBelow = false;
-                cciTrend = 0;
-                //isFalling = false;
+                greaterneg100 = false;
+                lessneg100 = false;
+                prevlessneg100 = false;
+                greaterplus100 = false;
+                prevgreaterplus100 = false;
+                lessplus100 = false;
                 firstrun = false;
+                value = double.MinValue;
+
+                Q.Clear();
             }
 
             internal double Calc(double thePrice)  // Calculate Indicator values
@@ -3134,105 +3140,53 @@ namespace Alveo.UserCode
                 //CCI -> CCI[i] = (TP[i] - SMA7[i])/(0.015 * MD[i])
                 if (Period < 7)
                     throw new Exception("CCI calc: period < 7, invalid !!");
-                if (firstrun)
+
+                if (firstrun) Init(thePrice);
+
+                Q.Enqueue(thePrice);
+                if (Q.Count < Period) return 0;
+
+                while (Q.Count > Period) Q.Dequeue();
+
+                var arr = Q.ToArray();
+
+                double meanVal = 0;
+                for (int i = 0; i < Period; i++) meanVal += arr[i];
+                meanVal /= Period;
+
+                double md = 0;
+                for (int i = 0; i < Period; i++)
                 {
-                    Init(thePrice);
+                    md += Math.Abs(arr[i] - meanVal);
                 }
+                md /= Period;
+
+                if (md < 1e-5) md = 1e-5;
 
                 prevValue = value;
-                value = tpobj.Calc(thePrice); //from the TPobj
+                value = (thePrice - meanVal) / 0.015 / md;
 
-                if (value > 100)
-                {
-                    cciVal = 1;
+                prevgreaterplus100 = greaterplus100;
+                prevlessneg100 = lessneg100;
+
+                if (value > 100) greaterplus100 = true;
                     Debug.WriteLine("CCI is above 100");
-                }
-                else if (value < -100)
-                {
-                    cciVal = -1;
-                    Debug.WriteLine("CCI is below -100");
-                }
-                else
-                {
-                    cciVal = 0;
-                }
+                if (value < 100 & value > 0) lessplus100 = true;
+                    Debug.WriteLine("CCI is below 100");
+                if (value < -100) greaterneg100 = true;
+                    Debug.WriteLine("CCI is above 100");
+                if (value > -100 & value < 0) lessneg100 = true;
+                    Debug.WriteLine("CCI is below 100");
 
-                if (value > prevValue)
-                {
-                    cciTrend = 1;
-                    Debug.WriteLine("CCI is Rising");
-                }
-                else
-                {
-                    cciTrend = -1;
-                    Debug.WriteLine("CCI is Falling");
-                }
 
                 Debug.WriteLine(" ");
                 Debug.WriteLine("***Break***");
                 Debug.WriteLine("the price " + thePrice);
                 Debug.WriteLine("CCI is " + value);
-                Debug.WriteLine("cciVal is " + cciVal);
-                Debug.WriteLine("cciTrend is " + cciTrend);
+                Debug.WriteLine("greaterplus100 is " + greaterplus100);
+                Debug.WriteLine("greaterneg100 is " + greaterneg100);
                 Debug.WriteLine("***Break***");
                 return value;
-            }
-        }
-
-        internal class TPobj
-        {
-            internal int Period;
-            internal double prevValue;
-            internal double value;
-            internal double md_diff;
-            internal Queue<double> Q;
-            internal int cnt2;
-
-            TPobj()
-            {
-                Period = 7;// CCI Period for calculations
-                value = 0;
-                md_diff = 0; //initiate the mean deviation
-                Q = new Queue<double>();
-            }
-
-            internal TPobj(int period) : this()
-            {
-                Period = period;
-            }
-
-            internal void Init(double price)
-            {
-                value = price;
-                prevValue = value;
-                Q.Clear();
-            }
-
-            internal double Calc(double thePrice)
-            {
-                Q.Enqueue(thePrice);
-                while (Q.Count > Period)
-                    Q.Dequeue();
-                var arr = Q.ToArray();
-                var sma = arr.Average();// SMA Calculation
-                double md_diff_sum = 0;
-                cnt2 = arr.Length;
-                for (int i = 0; i < cnt2; i++)
-                {
-                    md_diff_sum += Math.Abs(sma - arr[i]);
-                }
-
-                md_diff = md_diff_sum / cnt2;// MD calculation
-                value = (thePrice - sma) / (0.015 * md_diff);// CCI Calculation
-                if (double.IsNaN(value) == false)
-                {
-                    return value;
-                }
-                else
-                {
-                    return 0.0;
-                }
-
             }
         }
 
