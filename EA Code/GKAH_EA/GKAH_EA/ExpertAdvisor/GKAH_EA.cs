@@ -700,8 +700,8 @@ namespace Alveo.UserCode
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
                     if (openPrice < closePrice) candle = true;
-                    Debug.WriteLine("Hello...the price is " + thePrice);
-                    if ( candle == true && cci.greaterneg100 == true && cci.prevlessneg100 == true)
+                    Debug.WriteLine("Hello...the price is " + thePrice + "the candle is " + candle);
+                    if ( candle == true && cci.greaterneg100 == true && (cci.value > cci.prevValue))
                     {
                         LogPrint("CCI Strategy Long - CCI is below 100 and rising: " + cci.value);
                         Debug.WriteLine("Enter long" + cci.value);
@@ -710,7 +710,7 @@ namespace Alveo.UserCode
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if ( candle == false && cci.lessplus100 == true && cci.prevgreaterplus100)
+                    else if ( candle == false && cci.lessplus100 == true && (cci.value < cci.prevValue))
                     {
                         LogPrint("CCI Strategy Short - is above 100 and falling: " + cci.value);
                         Debug.WriteLine("Enter short " + cci.value);
@@ -3169,22 +3169,27 @@ namespace Alveo.UserCode
                 prevgreaterplus100 = greaterplus100;
                 prevlessneg100 = lessneg100;
 
+                greaterneg100 = false;
+                lessneg100 = false;
+                greaterplus100 = false;
+                lessplus100 = false;
+
                 if (value > 100) greaterplus100 = true;
-                    Debug.WriteLine("CCI is above 100");
+                    Debug.WriteLine("CCI is above +100");
                 if (value < 100 & value > 0) lessplus100 = true;
-                    Debug.WriteLine("CCI is below 100");
+                    Debug.WriteLine("CCI is between 0 and +100");
                 if (value < -100) greaterneg100 = true;
-                    Debug.WriteLine("CCI is above 100");
+                    Debug.WriteLine("CCI is below -100");
                 if (value > -100 & value < 0) lessneg100 = true;
-                    Debug.WriteLine("CCI is below 100");
+                    Debug.WriteLine("CCI is between -100 and 0");
 
 
                 Debug.WriteLine(" ");
                 Debug.WriteLine("***Break***");
                 Debug.WriteLine("the price " + thePrice);
                 Debug.WriteLine("CCI is " + value);
-                Debug.WriteLine("greaterplus100 is " + greaterplus100);
-                Debug.WriteLine("greaterneg100 is " + greaterneg100);
+                Debug.WriteLine("prevgreaterplus100 is " + prevgreaterplus100);
+                Debug.WriteLine("prevlessneg100 is " + prevlessneg100);
                 Debug.WriteLine("***Break***");
                 return value;
             }
