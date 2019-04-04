@@ -68,25 +68,25 @@ namespace Alveo.UserCode
         public double CCI_factor { get; set; }*/
 
         [Category("Settings")]
-        [Description("Stoploss limit in Pips. [ex: 5]")]
-        public int Stoploss { get; set; }
+        [Description("Stoploss limit in Pips is set to 5")]
+        public int Stoploss; //{ get; set; }
 
         [Category("Settings")]
-        [Description("TakeProfit limit in Pips. [ex: 2]")]
-        public int TakeProfit { get; set; }
+        [Description("TakeProfit limit in Pipsis set to 3")]
+        public int TakeProfit; //{ get; set; }
 
         [Category("Settings")]
         [Description("Number of Standard lots to trade. [ex: 0.05]")]
-        public double Quantity { get; set; }
+        public double Quantity; //{ get; set; }
 
         [Category("Settings")]
-        [Description("Maximum Bid/Ask Spread in Points to Open trades. [ex: 2.5]")]
-        public int MaxSpread { get; set; }
+        [Description("Maximum Bid/Ask Spread in Pips to Open trades. [ex: 2.5]")]
+        public int MaxSpread; //{ get; set; }
 
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.2 2x5";             // EA version - used to identify the output file
+        string version = "r0.3 3x5";             // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -200,7 +200,7 @@ namespace Alveo.UserCode
             // ** Default User Setting values
             CCI_period = 7;  // fixed CCI Period
             Stoploss = 5;  // stop loss in pips
-            TakeProfit = 2;  // take profit in pips
+            TakeProfit = 3;  // take profit in pips
             Quantity = 0.05; // lot size
             MaxSpread = 25;
             PriceType = PriceTypes.PRICE_TYPICAL; // used for calculating CCI
@@ -699,9 +699,10 @@ namespace Alveo.UserCode
                     var points = GetPoints();
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
-                    if (openPrice < closePrice) candle = true;
+                    candle = false;
+                    if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
                     Debug.WriteLine("Hello...the price is " + thePrice + "the candle is " + candle);
-                    if ( candle == true && cci.greaterneg100 == true && (cci.value > cci.prevValue))
+                    if ( cci.prevposcci == false && cci.greaterneg100 == true && candle == true)
                     {
                         LogPrint("CCI Strategy Long - CCI is below 100 and rising: " + cci.value);
                         Debug.WriteLine("Enter long" + cci.value);
@@ -710,7 +711,7 @@ namespace Alveo.UserCode
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if ( candle == false && cci.lessplus100 == true && (cci.value < cci.prevValue))
+                    else if (cci.prevposcci == true && cci.greaterplus100 == true && candle == false)
                     {
                         LogPrint("CCI Strategy Short - is above 100 and falling: " + cci.value);
                         Debug.WriteLine("Enter short " + cci.value);
@@ -3094,11 +3095,11 @@ namespace Alveo.UserCode
         {
             internal int Period;
             internal bool greaterneg100;
-            internal bool lessneg100;
-            internal bool prevlessneg100;
-            internal bool greaterplus100;
-            internal bool prevgreaterplus100;
-            internal bool lessplus100;
+            //internal bool lessneg100;
+            internal bool prevposcci; //previous cci is greather than current cci
+            internal bool greaterplus100;  //current cci is greater than 100
+            //internal bool prevgreaterplus100;
+            //internal bool lessplus100;
             internal bool firstrun;
             internal double value;
             internal double prevValue;
@@ -3124,11 +3125,12 @@ namespace Alveo.UserCode
             internal void Init(double thePrice)  // Initialize Indicator
             {
                 greaterneg100 = false;
-                lessneg100 = false;
-                prevlessneg100 = false;
+                prevposcci = false;
+                //lessneg100 = false;
+                //prevlessneg100 = false;
                 greaterplus100 = false;
-                prevgreaterplus100 = false;
-                lessplus100 = false;
+                //prevgreaterplus100 = false;
+                //lessplus100 = false;
                 firstrun = false;
                 value = double.MinValue;
 
@@ -3166,30 +3168,36 @@ namespace Alveo.UserCode
                 prevValue = value;
                 value = (thePrice - meanVal) / 0.015 / md;
 
-                prevgreaterplus100 = greaterplus100;
-                prevlessneg100 = lessneg100;
+                //prevgreaterplus100 = greaterplus100;
+                //prevlessneg100 = lessneg100;
 
                 greaterneg100 = false;
-                lessneg100 = false;
+                //lessneg100 = false;
                 greaterplus100 = false;
-                lessplus100 = false;
+                //lessplus100 = false;
+                prevposcci = false;
 
                 if (value > 100) greaterplus100 = true;
-                    Debug.WriteLine("CCI is above +100");
-                if (value < 100 & value > 0) lessplus100 = true;
-                    Debug.WriteLine("CCI is between 0 and +100");
+                
+                //if (value < 100 & value > 0) lessplus100 = true;
+                //    Debug.WriteLine("CCI is between 0 and +100");
                 if (value < -100) greaterneg100 = true;
-                    Debug.WriteLine("CCI is below -100");
-                if (value > -100 & value < 0) lessneg100 = true;
-                    Debug.WriteLine("CCI is between -100 and 0");
+
+                //if (value > -100 & value < 0) lessneg100 = true;
+                //    Debug.WriteLine("CCI is between -100 and 0");
+                if (prevValue > value) prevposcci = true;
 
 
                 Debug.WriteLine(" ");
                 Debug.WriteLine("***Break***");
                 Debug.WriteLine("the price " + thePrice);
                 Debug.WriteLine("CCI is " + value);
-                Debug.WriteLine("prevgreaterplus100 is " + prevgreaterplus100);
-                Debug.WriteLine("prevlessneg100 is " + prevlessneg100);
+                Debug.WriteLine("CCI is above +100 " + greaterplus100);
+                Debug.WriteLine("CCI is below -100 " + greaterneg100);
+                Debug.WriteLine("Previous CCI is greater than CCI " + prevposcci);
+
+                //Debug.WriteLine("prevgreaterplus100 is " + prevgreaterplus100);
+                //Debug.WriteLine("prevlessneg100 is " + prevlessneg100);
                 Debug.WriteLine("***Break***");
                 return value;
             }
