@@ -201,7 +201,7 @@ namespace Alveo.UserCode
             CCI_period = 7;  // fixed CCI Period
             Stoploss = 5;  // stop loss in pips
             TakeProfit = 3;  // take profit in pips
-            Quantity = 0.05; // lot size
+            Quantity = 0.5; // lot size
             MaxSpread = 25;
             PriceType = PriceTypes.PRICE_TYPICAL; // used for calculating CCI
 
@@ -689,7 +689,7 @@ namespace Alveo.UserCode
                 CheckExits(thePrice);
                 total = GetTotalOrders();           // get list and count of current trades
 
-                if (total == 0)
+                if (total <= 1)
                 {
                     Bar theBar = s.dI.bar;
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
@@ -702,9 +702,9 @@ namespace Alveo.UserCode
                     candle = false;
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
                     //Debug.WriteLine("Hello...the price is " + thePrice + "the candle is " + candle);
-                    if ( cci.prevposcci == false && cci.greaterneg100 == true && candle == true)
+                    if ( cci.prevposcci == false && cci.lessneg100 == true && candle == true)
                     {
-                        LogPrint("CCI Strategy Long - CCI is below 100 and rising: " + cci.value);
+                        LogPrint("CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value);
                         Debug.WriteLine("Enter long" + cci.value);
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
@@ -713,7 +713,26 @@ namespace Alveo.UserCode
                     }
                     else if (cci.prevposcci == true && cci.greaterplus100 == true && candle == false)
                     {
-                        LogPrint("CCI Strategy Short - is above 100 and falling: " + cci.value);
+                        LogPrint("CCI Strategy#1 Short - is above 100 and falling: " + cci.value);
+                        Debug.WriteLine("Enter short " + cci.value);
+                        s.targetDir = -1;               // Open Market trade, Side = Sell
+                        if (CheckRiskTooHigh(sl))
+                            return;
+                        CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                    }
+                    else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == true)
+                    {
+                        LogPrint("CCI Strategy#2 Long - CCI is above 100 and rising: " + cci.value);
+                        Debug.WriteLine("Enter long" + cci.value);
+                        s.targetDir = 1;                // Open Market trade, Side = Buy
+                        if (CheckRiskTooHigh(sl))
+                            return;
+                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                    }
+                    else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == false)
+                    {
+
+                        LogPrint("CCI Strategy#2 Short - is above 100 and falling: " + cci.value);
                         Debug.WriteLine("Enter short " + cci.value);
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
@@ -2531,7 +2550,7 @@ namespace Alveo.UserCode
             }
             if (cmd < 0)
                 return -1;
-            string cmntStr = (cmnt == null) ? magicStr : magicStr + "," + cmnt;
+            string cmntStr = (cmnt == null) ? magicStr : magicStr + "," + cmnt + cci.value;
             int ticket = TryCreateOrder(cmd, lotsize, price: price, stoploss: stoploss, takeprofit: takeprofit, comment: cmntStr);
             if (!optimize)
             {
@@ -3095,9 +3114,13 @@ namespace Alveo.UserCode
         internal class CCIobj
         {
             internal int Period;
-            internal bool greaterneg100;  //current cci is less than -100 ***need to change to lessneg100
+            internal bool pluscci;
+            internal bool negcci;
+            internal bool lessneg100;  //current cci is less than -100
+            internal bool prevlessneg100; // previous cci
             internal bool prevposcci; //previous cci is greather than current cci
             internal bool greaterplus100;  //current cci is greater than 100
+            internal bool prevgreaterplus100;
             internal bool firstrun;
             internal double value;
             internal double prevValue;
@@ -3122,9 +3145,13 @@ namespace Alveo.UserCode
 
             internal void Init(double thePrice)  // Initialize Indicator
             {
-                greaterneg100 = false; // need to change to lessneg100
+                lessneg100 = false;
+                prevlessneg100 = false;
                 prevposcci = false;
+                pluscci = false;
+                negcci = false;
                 greaterplus100 = false;
+                prevgreaterplus100 = false;
                 firstrun = false;
                 value = double.MinValue;
 
@@ -3162,13 +3189,16 @@ namespace Alveo.UserCode
                 prevValue = value;
                 value = (thePrice - meanVal) / 0.015 / md;
 
-                greaterneg100 = false;  // need to change to lessneg100
+                prevgreaterplus100 = greaterplus100;
+                prevlessneg100 = lessneg100;
+
+                lessneg100 = false;
                 greaterplus100 = false;
                 prevposcci = false;
 
                 if (value > 100) greaterplus100 = true;
                 
-                if (value < -100) greaterneg100 = true;
+                if (value < -100) lessneg100 = true;
                 
                 if (prevValue > value) prevposcci = true;
                 
