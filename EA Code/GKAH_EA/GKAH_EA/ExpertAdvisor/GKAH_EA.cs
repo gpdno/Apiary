@@ -86,7 +86,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.3 3x5";        // EA version - used to identify the output file
+        string version = "r0.31 3x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -709,7 +709,7 @@ namespace Alveo.UserCode
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
-                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
                     else if (cci.prevposcci == true && cci.greaterplus100 == true && candle == false)
                     {
@@ -718,26 +718,26 @@ namespace Alveo.UserCode
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
-                        CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
                     else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == true)
                     {
-                        LogPrint("CCI Strategy#2 Long - CCI is above 100 and rising: " + cci.value);
+                        LogPrint("CCI Strategy#2 Long - CCI is above 100 and rising above 100: " + cci.value);
                         Debug.WriteLine("Enter long" + cci.value);
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
-                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.1, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
                     else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == false)
                     {
 
-                        LogPrint("CCI Strategy#2 Short - is above 100 and falling: " + cci.value);
+                        LogPrint("CCI Strategy#2 Short - is above 100 and falling past 100: " + cci.value);
                         Debug.WriteLine("Enter short " + cci.value);
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
-                        CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        CreateOrder(type: TradeType.Market, lotsize: 0.1, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
                 }
             }
