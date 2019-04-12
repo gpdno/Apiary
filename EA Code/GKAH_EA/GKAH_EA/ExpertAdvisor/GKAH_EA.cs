@@ -59,13 +59,9 @@ namespace Alveo.UserCode
 
         #region User Settings          // ** Add Alveo EA User Settings Declared here
 
-        /*[Category("CCI")]
-        [Description("Period in Bars [ex: 7]")]
-        public int CCI_period { get; set; }
-
         [Category("CCI")]
-        [Description("CCI factor [ex: 0.015]")]
-        public double CCI_factor { get; set; }*/
+        [Description("Period in Bars [ex: 7]")]
+        public int CCI_period; // { get; set; }
 
         [Category("Settings")]
         [Description("Stoploss limit in Pips is set to 5")]
@@ -86,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.31 3x5";        // EA version - used to identify the output file
+        string version = "r0.4 3x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -108,7 +104,7 @@ namespace Alveo.UserCode
         public bool TPflag;
         public bool SLflag;
         Random rnd = new Random(2874);      // random selector for Sl or TP simulation selector
-        public int CCI_period;              //
+        ///public int CCI_period;              //
         public PriceTypes PriceType;        //
 
         string symbol;                      // chart symbol
@@ -685,11 +681,11 @@ namespace Alveo.UserCode
                 double thePrice = GetThePrice(PriceType, ref s.dI.bar);
                 double openPrice = s.dI.open;
                 double closePrice = s.dI.close;
-                Debug.WriteLine("price is " + thePrice);
+                string comment = "N/A";
                 CheckExits(thePrice);
                 total = GetTotalOrders();           // get list and count of current trades
 
-                if (total <= 1)
+                if (total == 0)
                 {
                     Bar theBar = s.dI.bar;
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
@@ -701,44 +697,25 @@ namespace Alveo.UserCode
                     int tp = TakeProfit * 10;  // Points
                     candle = false;
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
-                    //Debug.WriteLine("Hello...the price is " + thePrice + "the candle is " + candle);
                     if ( cci.prevposcci == false && cci.lessneg100 == true && candle == true)
                     {
                         LogPrint("CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value);
-                        Debug.WriteLine("Enter long" + cci.value);
+                        comment = "CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value;
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
-                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
                     }
                     else if (cci.prevposcci == true && cci.greaterplus100 == true && candle == false)
                     {
                         LogPrint("CCI Strategy#1 Short - is above 100 and falling: " + cci.value);
-                        Debug.WriteLine("Enter short " + cci.value);
+                        comment = "CCI Strategy#1 Short - is above 100 and falling: " + cci.value;
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
-                        CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp);
+                        CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
                     }
-                    else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == true)
-                    {
-                        LogPrint("CCI Strategy#2 Long - CCI is above 100 and rising above 100: " + cci.value);
-                        Debug.WriteLine("Enter long" + cci.value);
-                        s.targetDir = 1;                // Open Market trade, Side = Buy
-                        if (CheckRiskTooHigh(sl))
-                            return;
-                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.1, entryPrice: 0, stoploss: sl, takeprofit: tp);
-                    }
-                    else if (cci.prevposcci == false && cci.prevlessneg100 == true && candle == false)
-                    {
-
-                        LogPrint("CCI Strategy#2 Short - is above 100 and falling past 100: " + cci.value);
-                        Debug.WriteLine("Enter short " + cci.value);
-                        s.targetDir = -1;               // Open Market trade, Side = Sell
-                        if (CheckRiskTooHigh(sl))
-                            return;
-                        CreateOrder(type: TradeType.Market, lotsize: 0.1, entryPrice: 0, stoploss: sl, takeprofit: tp);
-                    }
+                    
                 }
             }
             catch (Exception e)
@@ -3201,17 +3178,6 @@ namespace Alveo.UserCode
                 if (value < -100) lessneg100 = true;
                 
                 if (prevValue > value) prevposcci = true;
-                
-                /*
-                Debug.WriteLine(" ");
-                Debug.WriteLine("***Break***");
-                Debug.WriteLine("the price " + thePrice);
-                Debug.WriteLine("CCI is " + value);
-                Debug.WriteLine("CCI is above +100 " + greaterplus100);
-                Debug.WriteLine("CCI is below -100 " + greaterneg100);
-                Debug.WriteLine("Previous CCI is greater than CCI " + prevposcci);
-                Debug.WriteLine("***Break***");
-                */
 
                 return value;
             }
