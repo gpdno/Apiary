@@ -2527,7 +2527,7 @@ namespace Alveo.UserCode
             }
             if (cmd < 0)
                 return -1;
-            string cmntStr = (cmnt == null) ? magicStr : magicStr + "," + cmnt + cci.value;
+            string cmntStr = (cmnt == null) ? magicStr : magicStr + "," + cmnt;
             int ticket = TryCreateOrder(cmd, lotsize, price: price, stoploss: stoploss, takeprofit: takeprofit, comment: cmntStr);
             if (!optimize)
             {
