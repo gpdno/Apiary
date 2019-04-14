@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.5 2x4";        // EA version - used to identify the output file
+        string version = "r0.5 3x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -194,8 +194,8 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            Stoploss = 4;                           // stop loss in pips
-            TakeProfit = 2;                         // take profit in pips
+            Stoploss = 5;                           // stop loss in pips
+            TakeProfit = 3;                         // take profit in pips
             Quantity = 0.5;                         // lot size
             MaxSpread = 25;                         // Value in points - i.e. 25 points = 2.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
