@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.5 3x5";        // EA version - used to identify the output file
+        string version = "r0.6 3x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -697,8 +697,8 @@ namespace Alveo.UserCode
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
                     if ( cci.prevposcci == false && cci.lessnegcci == true && candle == true)
                     {
-                        LogPrint("CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value);
-                        comment = cci.value + ", CCI Strategy#1 Long - CCI is below 100 and rising: ";
+                        LogPrint("CCI Strategy#1 Long - CCI is below 110 and rising: " + cci.value);
+                        comment = cci.value + ", CCI Strategy#1 Long - CCI is below 110 and rising: ";
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
@@ -706,8 +706,8 @@ namespace Alveo.UserCode
                     }
                     else if (cci.prevposcci == true && cci.greaterpluscci == true && candle == false)
                     {
-                        LogPrint("CCI Strategy#1 Short - is above 100 and falling: " + cci.value);
-                        comment = cci.value + ", CCI Strategy#1 Short - CCI is above 100 and falling: ";
+                        LogPrint("CCI Strategy#1 Short - is above 110 and falling: " + cci.value);
+                        comment = cci.value + ", CCI Strategy#1 Short - CCI is above 110 and falling: ";
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
@@ -3160,9 +3160,9 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 100) greaterpluscci = true;
+                if (value > 110) greaterpluscci = true;
                 
-                if (value < -100) lessnegcci = true;
+                if (value < -110) lessnegcci = true;
                 
                 if (prevValue > value) prevposcci = true;
 
