@@ -696,7 +696,7 @@ namespace Alveo.UserCode
                     var points = GetPoints();
                     int sl = Stoploss * 10;         // Points
                     int tp = TakeProfit * 10;       // Points
-                    Quantity = Math.Round((accountBalance * tradeRisk / sl), 2);
+                    Quantity = 0.5; //Math.Round((accountBalance * tradeRisk / sl), 2);
 
                     candle = false;
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
