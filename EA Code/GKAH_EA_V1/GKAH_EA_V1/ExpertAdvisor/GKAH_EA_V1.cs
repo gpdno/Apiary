@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.0 3x5";        // EA version - used to identify the output file
+        string version = "V1.0 130 5x15";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -195,18 +195,19 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            Stoploss = 5;                           // stop loss in pips
-            TakeProfit = 3;                         // take profit in pips
+            TakeProfit = 5;                         // take profit in pips
+            Stoploss = 15;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
-            MaxSpread = 25;                         // Value in points - i.e. 25 points = 2.5 pips
+            MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
 
             curPrice = double.MinValue;
             curTime = GetCurTime();
             curBar = null;
             curBars = 0;
-            riskLimit = 1.95;                        // in Pips,  i.e. 1.95% of AccountBallance for 1 Standard lot
-            tradeRisk = 0.005;                       // 0.5% risk per trade
+            riskLimit = 2.00;                        // in Pips,  i.e. 2.00% of AccountBallance for 1 Standard lot
+            tradeRisk = 0.01;                       // 1.0% risk per trade average 2 trades/day equally max 2.0% risk/day
+
             riskLimitReached = false;
             simAccountBalance = 10000;
             simFreeMargin = simAccountBalance;
@@ -697,10 +698,11 @@ namespace Alveo.UserCode
                     int sl = Stoploss * 10;         // Points
                     int tp = TakeProfit * 10;       // Points
                     Quantity = Math.Round((accountBalance * tradeRisk / sl), 2);
-                    bool oklong = false;
-                    bool okshort = true;
+                    bool oklong = false;            // flag to take long trades
+                    bool okshort = true;            // flag to take shrt trades
 
                     candle = false;
+
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
                     if (oklong == true && cci.prevposcci == false && cci.lessnegcci == true && candle == true)
                     {
@@ -3167,9 +3169,9 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 100) greaterpluscci = true;
+                if (value > 130) greaterpluscci = true;  // possible sell entry
 
-                if (value < -100) lessnegcci = true;
+                if (value < -130) lessnegcci = true;  // possible buy entry
 
                 if (prevValue > value) prevposcci = true;
 
