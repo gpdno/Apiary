@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.0 100 3x5";        // EA version - used to identify the output file
+        string version = "V1.0 120 4x8";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -195,8 +195,8 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            TakeProfit = 3;                         // take profit in pips
-            Stoploss = 5;                           // stop loss in pips
+            TakeProfit = 4;                         // take profit in pips
+            Stoploss = 8;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
             MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
@@ -206,7 +206,7 @@ namespace Alveo.UserCode
             curBar = null;
             curBars = 0;
             riskLimit = 2.00;                        // in Pips,  i.e. 2.00% of AccountBallance for 1 Standard lot
-            tradeRisk = 0.0075;                       // 0.75% risk per trade average 4 trades/day equally max 3.0% risk/day
+            tradeRisk = 0.01;                       // 1.0% risk per trade average 2 trades/day equally max 2.0% risk/day
 
             riskLimitReached = false;
             simAccountBalance = 10000;
@@ -3169,9 +3169,9 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 130) greaterpluscci = true;  // possible sell entry
+                if (value > 120) greaterpluscci = true;  // possible sell entry
 
-                if (value < -130) lessnegcci = true;  // possible buy entry
+                if (value < -120) lessnegcci = true;  // possible buy entry
 
                 if (prevValue > value) prevposcci = true;
 
