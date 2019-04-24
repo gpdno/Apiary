@@ -42,7 +42,7 @@ namespace Alveo.UserCode
 {
     [Serializable]
     [Description("")]
-    public class GKAH_EA : ExpertAdvisorBase   // **Expert Advisor Class name must be the same as the filename
+    public class GKAH_EA_V1 : ExpertAdvisorBase   // **Expert Advisor Class name must be the same as the filename
     {
         public enum PriceTypes      // selectable Price Types
         {
@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "r0.5 3x5";        // EA version - used to identify the output file
+        string version = "V1.0 100 3x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -125,6 +125,7 @@ namespace Alveo.UserCode
         internal double accountBalance;     // account balance
         internal double accountFreeMargin;  // account balance
         internal double riskLimit;          // in Pips,  i.e. 1.8% of AccountBallance for 1 Standard lot
+        internal double tradeRisk;          //  Percent of account ballance risked per trade
         string magicStr;
         TimeFrame timeFrame;
         internal DateTime OldTime, OldTime2, OldTime3, nextDay;
@@ -164,14 +165,14 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA constructors      // **Declare EA Constructors and Initialize Class variables
-        public GKAH_EA()      // Class constuctor, called by Alveo
+        public GKAH_EA_V1()      // Class constuctor, called by Alveo
         {
             simulate = false;       // default values
             optimize = false;
             InitEA();
         }
 
-        public GKAH_EA(bool optimizing, DateTime time, string path) : this()  // constructor called by simulation
+        public GKAH_EA_V1(bool optimizing, DateTime time, string path) : this()  // constructor called by simulation
         {
             simulate = true;
             optimize = optimizing;
@@ -194,17 +195,19 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            Stoploss = 5;                           // stop loss in pips
             TakeProfit = 3;                         // take profit in pips
+            Stoploss = 5;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
-            MaxSpread = 25;                         // Value in points - i.e. 25 points = 2.5 pips
+            MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
 
             curPrice = double.MinValue;
             curTime = GetCurTime();
             curBar = null;
             curBars = 0;
-            riskLimit = 1.8;                        // in Pips,  i.e. 1.8% of AccountBallance for 1 Standard lot
+            riskLimit = 2.00;                        // in Pips,  i.e. 2.00% of AccountBallance for 1 Standard lot
+            tradeRisk = 0.0075;                       // 0.75% risk per trade average 4 trades/day equally max 3.0% risk/day
+
             riskLimitReached = false;
             simAccountBalance = 10000;
             simFreeMargin = simAccountBalance;
@@ -689,31 +692,37 @@ namespace Alveo.UserCode
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
                         return;                     // conditions not right to Enter trades
                     int ticket1 = 0;
+
                     var digits = GetDigits();
                     var points = GetPoints();
                     int sl = Stoploss * 10;         // Points
                     int tp = TakeProfit * 10;       // Points
+                    Quantity = Math.Round((accountBalance * tradeRisk / sl), 2);
+                    bool oklong = false;            // flag to take long trades
+                    bool okshort = true;            // flag to take shrt trades
+
                     candle = false;
+
                     if (openPrice < closePrice) candle = true; // True == Green Candle  False == Red Candle
-                    if ( cci.prevposcci == false && cci.lessnegcci == true && candle == true)
+                    if (oklong == true && cci.prevposcci == false && cci.lessnegcci == true && candle == true)
                     {
-                        LogPrint("CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value);
+                        LogPrint("CCI Strategy#1 Long - CCI is below 100 and rising: " + cci.value + " Lot size: " + Quantity);
                         comment = cci.value + ", CCI Strategy#1 Long - CCI is below 100 and rising: ";
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
-                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
+                        ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
                     }
-                    else if (cci.prevposcci == true && cci.greaterpluscci == true && candle == false)
+                    else if (okshort == true && cci.prevposcci == true && cci.greaterpluscci == true && candle == false)
                     {
-                        LogPrint("CCI Strategy#1 Short - is above 100 and falling: " + cci.value);
+                        LogPrint("CCI Strategy#1 Short - is above 100 and falling: " + cci.value + " Lot size: " + Quantity);
                         comment = cci.value + ", CCI Strategy#1 Short - CCI is above 100 and falling: ";
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
                             return;
-                        CreateOrder(type: TradeType.Market, lotsize: 0.50, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
+                        CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp, cmnt: comment);
                     }
-                    
+
                 }
             }
             catch (Exception e)
@@ -1895,7 +1904,7 @@ namespace Alveo.UserCode
                         + " side=" + order.Side
                         + " price=" + order.ClosePrice.ToString("F5")
                         + " qty=" + order.Quantity.ToString("F2"));
-                        //+ " dProfit=" + dProfit.ToString("F5"));
+                    //+ " dProfit=" + dProfit.ToString("F5"));
                     if (firstLine)
                     {
                         WriteTradeLog("EA,Symbol,TF,Id,side,qty,OpenDate,OpenPrice,StopLoss," +
@@ -2934,7 +2943,7 @@ namespace Alveo.UserCode
             internal double prevValue;
             internal bool firstrun;
             internal double term3;
-            GKAH_EA ea;
+            GKAH_EA_V1 ea;
 
             // HMAobj constructor
             HMAobj()
@@ -2952,7 +2961,7 @@ namespace Alveo.UserCode
             }
 
             // HMAobj constructor with input parameters
-            internal HMAobj(GKAH_EA ea, int period, int threshold) : this()   // do HEMA() first
+            internal HMAobj(GKAH_EA_V1 ea, int period, int threshold) : this()   // do HEMA() first
             {
                 this.ea = ea;
                 Period = period;
@@ -3096,7 +3105,7 @@ namespace Alveo.UserCode
             internal double value;
             internal double prevValue;
             internal Queue<double> Q;
-            GKAH_EA ea;
+            GKAH_EA_V1 ea;
 
             // CCIobj constructor
             CCIobj()
@@ -3107,7 +3116,7 @@ namespace Alveo.UserCode
             }
 
             // CCIobj constructor with input parameters
-            internal CCIobj(GKAH_EA ea, int period) : this()   // do CCI() first
+            internal CCIobj(GKAH_EA_V1 ea, int period) : this()   // do CCI() first
             {
                 this.ea = ea;
                 Period = period;
@@ -3160,10 +3169,10 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 100) greaterpluscci = true;
-                
-                if (value < -100) lessnegcci = true;
-                
+                if (value > 100) greaterpluscci = true;  // possible sell entry
+
+                if (value < -100) lessnegcci = true;  // possible buy entry
+
                 if (prevValue > value) prevposcci = true;
 
                 return value;
