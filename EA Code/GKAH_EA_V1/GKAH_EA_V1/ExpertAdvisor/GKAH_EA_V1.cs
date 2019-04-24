@@ -3169,9 +3169,9 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 130) greaterpluscci = true;  // possible sell entry
+                if (value > 100) greaterpluscci = true;  // possible sell entry
 
-                if (value < -130) lessnegcci = true;  // possible buy entry
+                if (value < -100) lessnegcci = true;  // possible buy entry
 
                 if (prevValue > value) prevposcci = true;
 
