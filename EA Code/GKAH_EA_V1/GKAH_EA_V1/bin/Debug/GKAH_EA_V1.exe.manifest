@@ -426,14 +426,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GKAH_EA_V1.exe" size="67040">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GKAH_EA_V1.exe" size="67552">
       <assemblyIdentity name="GKAH_EA_V1" version="1.0.0.0" language="neutral" processorArchitecture="x86" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>cytS2KmT6fUWaNK1v0/U+9LLt3nCSIys9k7P6cH0O9Q=</dsig:DigestValue>
+        <dsig:DigestValue>i9f7a5DvC/iz+wSV3cduuFUvUFjPtrSmAnFHJs/KHHU=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
