@@ -1,4 +1,4 @@
-﻿/*
+/*
  * * LEGAL DISCLAIMER *
 
 DISCLAIMER: Forex trading involves substantial risk of loss and is not suitable for every investor. 
@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.0 120 4x8";        // EA version - used to identify the output file
+        string version = "V1.0a 100 +15 8x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -195,8 +195,8 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            TakeProfit = 4;                         // take profit in pips
-            Stoploss = 8;                           // stop loss in pips
+            TakeProfit = 8;                         // take profit in pips
+            Stoploss = 5;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
             MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
@@ -206,7 +206,7 @@ namespace Alveo.UserCode
             curBar = null;
             curBars = 0;
             riskLimit = 2.00;                        // in Pips,  i.e. 2.00% of AccountBallance for 1 Standard lot
-            tradeRisk = 0.01;                       // 1.0% risk per trade average 2 trades/day equally max 2.0% risk/day
+            tradeRisk = 0.0075;                       // 0.75% risk per trade average 4 trades/day equally max 3.0% risk/day
 
             riskLimitReached = false;
             simAccountBalance = 10000;
@@ -294,7 +294,7 @@ namespace Alveo.UserCode
                 lastTime = DateTime.MinValue;
                 lastReport = DateTime.MinValue;
                 oldFilled = DateTime.MinValue;
-                updaterate = new TimeSpan(0, 0, 10);    // 10 seconds for CheckExits
+                updaterate = new TimeSpan(0, 60, 0);    // 10 seconds for CheckExits
                 reportRate = new TimeSpan(0, 15, 0);    // 15 minutes for status report
                 curBar = GetCurBar();
                 s.dI = curBar;
@@ -981,14 +981,14 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                /*if ((s.buyOpenOrders.Count > 0)    // Close orders if HMA changed direction
-                    || (s.sellOpenOrders.Count > 0))
+                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value + 15.0)))    // Close orders if CCi changed direction
                 {
                     if (!optimize)
-                        LogPrint("CheckExits: CCI trend changed. isBelow=" + " isAbove=");
+                        LogPrint("CheckExits: CCI trend changed:  " + "previous " + cci.prevValue + "Current " + cci.value);
                     closeAllTrades(reason: 55);
                     total = GetTotalOrders();
-                }*/
+                }
+
                 RemoveClosedOrders();
             }
             return;
@@ -2991,7 +2991,7 @@ namespace Alveo.UserCode
 
             internal double Calc(double thePrice)  // Calculate Indicator values
             {
-                // HMA(n) = WMA(2 * WMA(n / 2) – WMA(n)), sqrt(n))
+                // HMA(n) = WMA(2 * WMA(n / 2) � WMA(n)), sqrt(n))
                 if (Period < 2)
                     throw new Exception("HMAcalc: period < 2, invalid !!");
                 if (Threshold < 0)
@@ -3169,9 +3169,9 @@ namespace Alveo.UserCode
                 greaterpluscci = false;
                 prevposcci = false;
 
-                if (value > 120) greaterpluscci = true;  // possible sell entry
+                if (value > 100) greaterpluscci = true;  // possible sell entry
 
-                if (value < -120) lessnegcci = true;  // possible buy entry
+                if (value < -100) lessnegcci = true;  // possible buy entry
 
                 if (prevValue > value) prevposcci = true;
 
