@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.0a 100 5x5";        // EA version - used to identify the output file
+        string version = "V1.0a 100 +0 8x5";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -195,7 +195,7 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            TakeProfit = 5;                         // take profit in pips
+            TakeProfit = 8;                         // take profit in pips
             Stoploss = 5;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
             MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
@@ -981,7 +981,7 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value + 5)))    // Close orders if CCi changed direction
+                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value)))    // Close orders if CCi changed direction
                 {
                     if (!optimize)
                         LogPrint("CheckExits: CCI trend changed:  " + "previous " + cci.prevValue + "Current " + cci.value);
