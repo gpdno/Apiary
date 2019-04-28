@@ -145,7 +145,8 @@ namespace Alveo.UserCode
         bool initialized;
         int TIF;                                // Time In Force for Pending orders in hours
 
-        SMAobj sma;                             // SMA Indicator instance variable
+        SMA20obj sma20;                             // SMA Indicator instance variable
+        SMA50obj sma50;                             // SMA Indicator instance variable
 
         TimeSpan fridayPause = new TimeSpan(12 + 2, 00, 00);         // Local time
         TimeSpan fridayclose = new TimeSpan(12 + 4, 50, 00);         // Local time
@@ -409,7 +410,7 @@ namespace Alveo.UserCode
                         sessionClock = curTime.Subtract(sessionStartTM);
                     countBars++;
                     double thePrice = GetThePrice(PriceType, ref s.dI.bar);
-                    sma.Calc(thePrice);
+                    sma20.Calc(thePrice);
                     Monitor();                  // Monitor all orders
                     if (sessionEnded)
                         return 0;
@@ -688,7 +689,7 @@ namespace Alveo.UserCode
                 //if (total == 0 && atr.value >= MinATR * point)
                 if (total == 0)
                 {
-                    double priceDist = thePrice - sma.value;
+                    double priceDist = thePrice - sma20.value;
                     int priceDir = (priceDist > 0) ? 1 : -1;
                     Bar theBar = s.dI.bar;
                     if (Quantity < 0.01 || CheckMaxSpread() || paused || s.stats.exceededDailyDrawdown || countBars < 5)
@@ -696,19 +697,19 @@ namespace Alveo.UserCode
                     int ticket1 = 0;
                     var digits = GetDigits();
                     var points = GetPoints();
-                    var trendChanged = (sma.trendDir != sma.prevTrendDir);
+                    var trendChanged = (sma20.trendDir != sma20.prevTrendDir);
                     int sl = Stoploss * 10;  // Points
                     int tp = TakeProfit * 10;  // Points
                     if (trendChanged && !optimize)
-                        LogPrint("Strategy: trendChanged=" + trendChanged + " isRrising=" + sma.isRrising + " isFalling=" + sma.isFalling + " priceDir=" + priceDir);
-                    if (trendChanged && sma.isRrising && priceDir > 0)
+                        LogPrint("Strategy: trendChanged=" + trendChanged + " isRising=" + sma20.isRising + " isFalling=" + sma20.isFalling + " priceDir=" + priceDir);
+                    if (trendChanged && sma20.isRising && priceDir > 0)
                     {
                         s.targetDir = 1;                // Open Market trade, Side = Buy
                         if (CheckRiskTooHigh(sl))
                             return;
                         ticket1 = CreateOrder(type: TradeType.Market, lotsize: Quantity, entryPrice: 0, stoploss: sl, takeprofit: tp);
                     }
-                    else if (trendChanged && sma.isFalling && priceDir < 0)
+                    else if (trendChanged && sma20.isFalling && priceDir < 0)
                     {
                         s.targetDir = -1;               // Open Market trade, Side = Sell
                         if (CheckRiskTooHigh(sl))
@@ -973,11 +974,11 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.buyOpenOrders.Count > 0 && sma.isFalling)    // Close orders if SMA changed direction
-                    || (s.sellOpenOrders.Count > 0 && sma.isRrising))
+                if ((s.buyOpenOrders.Count > 0 && sma20.isFalling)    // Close orders if SMA changed direction
+                    || (s.sellOpenOrders.Count > 0 && sma20.isRising))
                 {
                     if (!optimize)
-                        LogPrint("CheckExits: SMA trend changed. isRrising=" + sma.isRrising + " isFalling=" + sma.isFalling);
+                        LogPrint("CheckExits: SMA trend changed. isRrising=" + sma20.isRising + " isFalling=" + sma20.isFalling);
                     closeAllTrades(reason: 55);
                     total = GetTotalOrders();
                 }
@@ -1023,7 +1024,8 @@ namespace Alveo.UserCode
 
         internal void InitInds()
         {
-            sma = new SMAobj(this);
+            sma20 = new SMA20obj(this, SMA20_period);
+            sma50 = new SMA50obj(this, SMA50_period);
             if (simulate)
                 return;
             RefreshRates();
@@ -1034,11 +1036,11 @@ namespace Alveo.UserCode
             {
                 theBar = ChartBars[i];
                 thePrice = GetThePrice(PriceType, ref theBar);
-                sma.Calc(thePrice);
+                sma20.Calc(thePrice);
             }
             LogPrint("InitInds: count=" + count
                 + " thePrice=" + thePrice.ToString("F5")
-                + " sma=" + sma.value.ToString("F5")
+                + " sma=" + sma20.value.ToString("F5")
                 );
         }
 
@@ -2914,79 +2916,170 @@ namespace Alveo.UserCode
         #endregion
 
         #region Indicator Classes
-        // SMA Class Object
-        internal class SMAobj
+        /*
+        SMA 20 Period Class Object
+        
+         */
+
+        internal class SMA20obj
         {
-            internal SMAobj sma20;
-            internal SMAobj sma50;
             internal int Period;
-            internal int cnt2;
-            internal bool isRrising;
-            internal bool isFalling;
-            internal int trendDir;
-            internal int prevTrendDir;
-            internal bool trendChanged;
+            internal bool isRising;  //current cci is less than -100
+            internal bool isFalling; //previous cci is greater/lesser than current cci
+            internal bool firstrun;
             internal double value;
             internal double prevValue;
-            internal double lastPrice;
-            internal bool firstrun;
             internal Queue<double> Q;
             Lazy_EA ea;
 
-            // SMAobj constructor
-            SMAobj()
+            // SMA20obj constructor
+            SMA20obj()
             {
-                isRrising = false;
-                isFalling = false;
-                trendDir = 0;
-                prevTrendDir = 0;
-                trendChanged = false;
-                value = double.MinValue;
-                prevValue = value;
-                Period = 1;
-                value = 0;
-                lastPrice = double.MinValue;
+                Period = 20;
+                firstrun = true;
                 Q = new Queue<double>();
             }
 
-            // SMAobj constructor with input parameters
-            internal SMAobj(Lazy_EA ea) : this()   // do HEMA() first
+            // CCIobj constructor with input parameters
+            internal SMA20obj(Lazy_EA ea, int period) : this()   // do CCI() first
             {
                 this.ea = ea;
-                sma20 = new SMAobj(Period);
-                sma50 = new SMAobj(Period);
+                Period = period;
                 firstrun = true;
             }
 
-            internal void Init(double price)
+            internal void Init(double thePrice)  // Initialize Indicator
             {
-                value = price;
-                prevValue = value;
+                isRising = false;
+                isFalling = false;
+                firstrun = false;
+                value = double.MinValue;
+
                 Q.Clear();
             }
 
-            internal double Calc(double thePrice)
+            internal double Calc(double thePrice)  // Calculate Indicator values
             {
-                prevValue = value;
-                value = 0;
-                lastPrice = thePrice;
+                if (Period < 20)
+                    throw new Exception("SMA20 calc: period < 7, invalid !!");
+
+                if (firstrun) Init(thePrice);
+
                 Q.Enqueue(thePrice);
-                while (Q.Count > Period)
-                    Q.Dequeue();
+                if (Q.Count < Period) return 0;
+
+                while (Q.Count > Period) Q.Dequeue();
+
                 var arr = Q.ToArray();
-                cnt2 = arr.Length;
-                double sum = 0;
-                double mult = 0;
-                for (int i = 0; i < cnt2; i++)
+
+                double meanVal = 0;
+                for (int i = 0; i < Period; i++) meanVal += arr[i];
+                meanVal /= Period;
+
+                double md = 0;
+                for (int i = 0; i < Period; i++)
                 {
-                    mult += 1;
-                    value += mult * arr[i];
-                    sum += mult;
+                    md += Math.Abs(arr[i] - meanVal);
                 }
-                if (sum > 0)
-                    value /= sum;
-                else
-                    value = double.MinValue;
+                md /= Period;
+
+                if (md < 1e-5) md = 1e-5;
+
+                prevValue = value;
+                value = (thePrice - meanVal) / 0.015 / md;
+
+                isRising = false;
+                isFalling = false;
+
+                if (value > prevValue) isRising = true;  // possible sell entry
+
+                if (value < prevValue) isFalling = true;  // possible buy entry
+
+                return value;
+            }
+        }
+
+        #endregion
+
+        #region Indicator Classes
+        /*
+        SMA 50 Period Class Object
+        */
+
+        internal class SMA50obj
+        {
+            internal int Period;
+            internal bool isRising;  //current cci is less than -100
+            internal bool isFalling; //previous cci is greater/lesser than current cci
+            internal bool firstrun;
+            internal double value;
+            internal double prevValue;
+            internal Queue<double> Q;
+            Lazy_EA ea;
+
+            // SMA50obj constructor
+            SMA50obj()
+            {
+                Period = 20;
+                firstrun = true;
+                Q = new Queue<double>();
+            }
+
+            // CCIobj constructor with input parameters
+            internal SMA50obj(Lazy_EA ea, int period) : this()   // do CCI() first
+            {
+                this.ea = ea;
+                Period = period;
+                firstrun = true;
+            }
+
+            internal void Init(double thePrice)  // Initialize Indicator
+            {
+                isRising = false;
+                isFalling = false;
+                firstrun = false;
+                value = double.MinValue;
+
+                Q.Clear();
+            }
+
+            internal double Calc(double thePrice)  // Calculate Indicator values
+            {
+                if (Period < 50)
+                    throw new Exception("SMA50 calc: period < 7, invalid !!");
+
+                if (firstrun) Init(thePrice);
+
+                Q.Enqueue(thePrice);
+                if (Q.Count < Period) return 0;
+
+                while (Q.Count > Period) Q.Dequeue();
+
+                var arr = Q.ToArray();
+
+                double meanVal = 0;
+                for (int i = 0; i < Period; i++) meanVal += arr[i];
+                meanVal /= Period;
+
+                double md = 0;
+                for (int i = 0; i < Period; i++)
+                {
+                    md += Math.Abs(arr[i] - meanVal);
+                }
+                md /= Period;
+
+                if (md < 1e-5) md = 1e-5;
+
+                prevValue = value;
+                value = (thePrice - meanVal) / 0.015 / md;
+
+                isRising = false;
+                isFalling = false;
+
+                if (value > prevValue) isRising = true;  // possible sell entry
+
+                if (value < prevValue) isFalling = true;  // possible buy entry
+
                 return value;
             }
         }
