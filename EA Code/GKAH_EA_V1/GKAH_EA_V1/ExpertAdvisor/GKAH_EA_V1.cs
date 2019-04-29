@@ -294,7 +294,7 @@ namespace Alveo.UserCode
                 lastTime = DateTime.MinValue;
                 lastReport = DateTime.MinValue;
                 oldFilled = DateTime.MinValue;
-                updaterate = new TimeSpan(0, 1, 00);    // 60 seconds for CheckExits
+                updaterate = new TimeSpan(0, 2, 30);    // 2 minute 30 seconds for CheckExits
                 reportRate = new TimeSpan(0, 15, 0);    // 15 minutes for status report
                 curBar = GetCurBar();
                 s.dI = curBar;
