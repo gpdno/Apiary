@@ -698,7 +698,7 @@ namespace Alveo.UserCode
                     int sl = Stoploss * 10;         // Points
                     int tp = TakeProfit * 10;       // Points
                     Quantity = Math.Round((accountBalance * tradeRisk / sl), 2);
-                    bool oklong = false;            // flag to take long trades
+                    bool oklong = true;            // flag to take long trades
                     bool okshort = true;            // flag to take shrt trades
 
                     candle = false;
@@ -986,6 +986,7 @@ namespace Alveo.UserCode
                     if (!optimize)
                         LogPrint("CheckExits: CCI trend changed:  " + "previous " + cci.prevValue + "Current " + cci.value);
                     closeAllTrades(reason: 55);
+                    //ModifyOrder(int ticket, double stoploss, ref Order order);
                     total = GetTotalOrders();
                 }
 
