@@ -1,4 +1,4 @@
-/*
+﻿/*
  * * LEGAL DISCLAIMER *
 
 DISCLAIMER: Forex trading involves substantial risk of loss and is not suitable for every investor. 
@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.0a 100 +5 8x5";        // EA version - used to identify the output file
+        string version = "V1.1 100 -20 4x8";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -195,8 +195,8 @@ namespace Alveo.UserCode
 
             // ** Default User Setting values
             CCI_period = 7;                         // fixed CCI Period
-            TakeProfit = 8;                         // take profit in pips
-            Stoploss = 5;                           // stop loss in pips
+            TakeProfit = 4;                         // take profit in pips
+            Stoploss = 8;                           // stop loss in pips
             Quantity = 0.5;                         // lot size
             MaxSpread = 5;                         // Value in points - i.e. 5 points = 0.5 pips
             PriceType = PriceTypes.PRICE_TYPICAL;   // used for calculating CCI
@@ -294,7 +294,7 @@ namespace Alveo.UserCode
                 lastTime = DateTime.MinValue;
                 lastReport = DateTime.MinValue;
                 oldFilled = DateTime.MinValue;
-                updaterate = new TimeSpan(0, 2, 30);    // 2 minute 30 seconds for CheckExits
+                updaterate = new TimeSpan(0, 5, 0);    // 2 minute 30 seconds for CheckExits
                 reportRate = new TimeSpan(0, 15, 0);    // 15 minutes for status report
                 curBar = GetCurBar();
                 s.dI = curBar;
@@ -385,7 +385,7 @@ namespace Alveo.UserCode
                     curPrice = s.dI.close;
                     accountBalance = GetAccountBalance();
                     accountFreeMargin = GetFreeMargin();
-                    riskLimit = 1.8 * accountBalance / 100 / 10; // 1.8 percent risk limit in Pips for 1 Standard lot
+                    riskLimit = 3.8 * accountBalance / 100 / 10; // 1.8 percent risk limit in Pips for 1 Standard lot
                     if (DetectChanged(ref s.OKtoTrade, CheckOKToTrade()))
                     {
                         if (!optimize)
@@ -981,7 +981,7 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value + 5.0)))    // Close orders if CCi changed direction
+                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value - 20.0)))    // Close orders if CCi changed direction
                 {
                     if (!optimize)
                         LogPrint("CheckExits: CCI trend changed:  " + "previous " + cci.prevValue + "Current " + cci.value);
@@ -2991,7 +2991,7 @@ namespace Alveo.UserCode
 
             internal double Calc(double thePrice)  // Calculate Indicator values
             {
-                // HMA(n) = WMA(2 * WMA(n / 2) � WMA(n)), sqrt(n))
+                // HMA(n) = WMA(2 * WMA(n / 2) – WMA(n)), sqrt(n))
                 if (Period < 2)
                     throw new Exception("HMAcalc: period < 2, invalid !!");
                 if (Threshold < 0)

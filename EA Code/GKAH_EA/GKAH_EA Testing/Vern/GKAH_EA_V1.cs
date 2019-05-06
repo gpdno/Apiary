@@ -82,7 +82,7 @@ namespace Alveo.UserCode
         #endregion
 
         #region EA variables    // ** Declare EA variables here
-        string version = "V1.1 100 -30 4x8";        // EA version - used to identify the output file
+        string version = "V1.1 100 -40 4x8";        // EA version - used to identify the output file
         datetime datetime0 = 0;             // minimum datetime
         public string pair = "EUR/USD";     // default curency
         bool startSession;                  // start of session flag
@@ -981,7 +981,7 @@ namespace Alveo.UserCode
             total = GetTotalOrders();               // get list and count of current trades
             if (total > 0)
             {
-                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value - 30.0)))    // Close orders if CCi changed direction
+                if ((s.sellOpenOrders.Count > 0) && (cci.prevValue < (cci.value - 40.0)))    // Close orders if CCi changed direction
                 {
                     if (!optimize)
                         LogPrint("CheckExits: CCI trend changed:  " + "previous " + cci.prevValue + "Current " + cci.value);
